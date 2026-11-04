@@ -1,0 +1,5651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="X Adapter" />
+  <title>X Message Adapter</title>
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    /* =============================================
+       RESET & BASE (TEMA CLARO / LIGHT THEME)
+    ============================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:         #f7f9f9;
+      --surface:    #ffffff;
+      --surface2:   #eff3f4;
+      --border:     #cfd9de;
+      --border2:    #b9cad2;
+      --text:       #0f1419;
+      --text-muted: #536471;
+      --accent:     #1d9bf0;
+      --accent-dim: rgba(29, 155, 240, 0.12);
+      --purple:     #7c3aed;
+      --purple-dim: rgba(124, 58, 237, 0.12);
+      --green:      #00ba7c;
+      --orange:     #f59e0b;
+      --red:        #f4212e;
+      --radius:     12px;
+      --radius-sm:  8px;
+      --shadow:     0 4px 20px rgba(15, 20, 25, 0.08);
+    }
+
+    @font-face {
+      font-family: "Twemoji Country Flags";
+      src: url("https://cdn.jsdelivr.net/npm/country-flag-emoji-polyfill@0.1.4/dist/TwemojiCountryFlags.woff2") format("woff2");
+      unicode-range: U+1F1E6-1F1FF;
+      font-display: swap;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: "Twemoji Country Flags", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    /* =============================================
+       HEADER
+    ============================================= */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .logo svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--text);
+    }
+
+    .btn-settings {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s, border-color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-settings:hover, .btn-settings:active {
+      background: var(--border);
+      border-color: var(--border2);
+    }
+
+    /* =============================================
+       MAIN CONTENT AREA
+    ============================================= */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px 16px 16px;
+      gap: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* =============================================
+       CARD / SECTION CON TAMAÑO FIJO Y SCROLL INTERNO
+    ============================================= */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .card-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px 4px;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+
+    textarea {
+      width: 100%;
+      height: 130px;
+      min-height: 130px;
+      max-height: 130px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
+      padding: 6px 14px 10px;
+      resize: none;
+      font-family: inherit;
+      overflow-y: auto;
+      -webkit-tap-highlight-color: transparent;
+      display: block;
+    }
+
+    textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* =============================================
+       CHARACTER COUNTER BAR (Siempre visible en base)
+    ============================================= */
+    .counter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+      flex-shrink: 0;
+      height: 44px;
+    }
+
+    .counter-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .counter-value {
+      font-size: 14px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s;
+    }
+
+    .counter-value.neutral { color: var(--text-muted); }
+    .counter-value.warning  { color: var(--orange); }
+    .counter-value.danger   { color: var(--red); }
+    .counter-value.success  { color: var(--green); }
+
+    .counter-ring {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .counter-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .counter-ring circle {
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+    }
+
+    .ring-bg   { stroke: var(--border2); }
+    .ring-fill { stroke: var(--accent); }
+
+    /* =============================================
+       BARRA DE ACCESOS RÁPIDOS INTERACTIVOS (PANTALLA PRINCIPAL)
+    ============================================= */
+    .quick-bar-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .quick-bar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .quick-bar-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quick-bar-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+
+    .quick-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+
+    .quick-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-quick-act {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-quick-act:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .quick-pills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 115px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .pill-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .pill-chip:hover {
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .pill-chip.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .pill-chip.active .chip-check {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .chip-icon {
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .chip-label {
+      white-space: nowrap;
+    }
+
+    .chip-check {
+      font-size: 11px;
+      opacity: 0.8;
+      font-weight: 700;
+    }
+
+    /* =============================================
+       TRANSFORMED OUTPUT (Tamaño fijo con scroll)
+    ============================================= */
+    .output-text {
+      width: 100%;
+      height: 130px;
+      min-height: 130px;
+      max-height: 130px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
+      padding: 6px 14px 10px;
+      resize: none;
+      font-family: inherit;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: block;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .output-text[readonly] {
+      cursor: text;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .output-text::placeholder {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .output-text.empty {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* =============================================
+       OUTPUT COUNTER BAR (Siempre visible en base)
+    ============================================= */
+    .output-counter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+      gap: 10px;
+      flex-shrink: 0;
+      height: 44px;
+    }
+
+    .counter-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .counter-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 2px solid;
+      transition: color 0.3s, border-color 0.3s, background 0.3s;
+    }
+
+    .counter-badge.neutral {
+      color: var(--text-muted);
+      border-color: var(--border);
+      background: transparent;
+    }
+
+    .counter-badge.success {
+      color: var(--green);
+      border-color: var(--green);
+      background: rgba(0,186,124,0.08);
+    }
+
+    .counter-badge.warning {
+      color: var(--orange);
+      border-color: var(--orange);
+      background: rgba(255,173,31,0.08);
+    }
+
+    .counter-badge.danger {
+      color: var(--red);
+      border-color: var(--red);
+      background: rgba(244,33,46,0.08);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .limit-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .btn-copy {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      border-radius: 20px;
+      padding: 6px 15px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: opacity 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+    }
+
+    .btn-copy:hover   { opacity: 0.85; }
+    .btn-copy:active  { transform: scale(0.96); }
+    .btn-copy.copied  { background: var(--green); }
+
+    /* =============================================
+       AUDIT / MODIFICATIONS LIST
+    ============================================= */
+    .audit-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .audit-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .audit-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .audit-total-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 12px;
+      background: rgba(0, 186, 124, 0.15);
+      color: var(--green);
+      border: 1px solid var(--green);
+      transition: all 0.2s;
+    }
+
+    .audit-total-badge.zero {
+      background: rgba(113, 118, 123, 0.12);
+      color: var(--text-muted);
+      border-color: var(--border2);
+    }
+
+    .audit-list {
+      display: flex;
+      flex-direction: column;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .audit-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      transition: background 0.12s;
+    }
+
+    .audit-item:last-child {
+      border-bottom: none;
+    }
+
+    .audit-item:hover {
+      background: var(--surface2);
+    }
+
+    .audit-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .audit-item-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audit-item-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+    }
+
+    .audit-item-line {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .audit-snippet {
+      font-family: "Twemoji Country Flags", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      background: var(--surface2);
+      padding: 3px 8px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .audit-snippet del {
+      color: #dc2626;
+      background: rgba(244, 33, 46, 0.12);
+      padding: 0 4px;
+      border-radius: 3px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .audit-saved-pill {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(0, 186, 124, 0.12);
+      border: 1px solid var(--green);
+      padding: 3px 8px;
+      border-radius: 14px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .audit-saved-pill.info {
+      color: var(--text-muted);
+      border-color: var(--border2);
+      background: var(--surface2);
+    }
+
+    .audit-empty {
+      padding: 16px 14px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    /* =============================================
+       SETTINGS OVERLAY & ACORDEÓN DESPLEGABLE
+    ============================================= */
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      backdrop-filter: blur(4px);
+    }
+
+    .settings-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .settings-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      width: 100%;
+      max-height: 88dvh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+      padding-bottom: env(safe-area-inset-bottom, 16px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .settings-overlay.open .settings-panel {
+      transform: translateY(0);
+    }
+
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 2;
+    }
+
+    .settings-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .drag-handle {
+      position: absolute;
+      left: 50%;
+      top: 6px;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 4px;
+      background: var(--border2);
+      border-radius: 2px;
+    }
+
+    .btn-close {
+      background: var(--surface2);
+      border: none;
+      color: var(--text);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+
+    .btn-close:hover { background: var(--border); }
+
+    .settings-body {
+      padding: 12px 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* BARRA DE HERRAMIENTAS DEL ACORDEÓN */
+    .settings-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 4px 2px;
+      gap: 8px;
+    }
+
+    .settings-toolbar-hint {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .settings-toolbar-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-acc-action {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-acc-action:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    /* TARJETA COLAPSABLE (ACORDEÓN) */
+    .settings-group-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .settings-group-card:not(.collapsed) {
+      border-color: var(--border2);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .settings-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .settings-group-header:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .settings-group-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .settings-group-chevron {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: inline-block;
+      transition: transform 0.22s ease;
+    }
+
+    .settings-group-card.collapsed .settings-group-chevron {
+      transform: rotate(-90deg);
+    }
+
+    .settings-group-card:not(.collapsed) .settings-group-chevron {
+      transform: rotate(0deg);
+      color: var(--accent);
+    }
+
+    .settings-group-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.3px;
+    }
+
+    .settings-group-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 1px 7px;
+      border-radius: 10px;
+      border: 1px solid rgba(29, 155, 240, 0.3);
+    }
+
+    .settings-group-items {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--border);
+      max-height: 900px;
+      overflow: hidden;
+      transition: max-height 0.26s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+      opacity: 1;
+    }
+
+    .settings-group-card.collapsed .settings-group-items {
+      max-height: 0;
+      opacity: 0;
+      border-top: none;
+      pointer-events: none;
+    }
+
+    /* TOGGLE ROW COMPACTO */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s;
+    }
+
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row:hover  { background: rgba(255,255,255,0.04); }
+    .toggle-row:active { background: rgba(255,255,255,0.07); }
+
+    .toggle-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .toggle-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-bottom: 2px;
+      color: var(--text);
+    }
+
+    .toggle-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--border2);
+      border-radius: 30px;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .toggle-switch input:checked + .toggle-track {
+      background: var(--accent);
+    }
+
+    .toggle-switch input:checked + .toggle-track::after {
+      transform: translateX(18px);
+    }
+
+    /* =============================================
+       MINITABLA DE REGLAS PERSONALIZADAS
+    ============================================= */
+    .custom-rules-box {
+      padding: 10px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+
+    .custom-rules-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 34px;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      padding: 0 4px;
+    }
+
+    .custom-rules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .custom-rule-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 34px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Cada celda input+emoji wrapper */
+    .custom-rule-field {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+    .custom-rule-field input {
+      flex: 1;
+      min-width: 0;
+    }
+    .btn-emoji-pick {
+      flex-shrink: 0;
+      width: 28px;
+      height: 32px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1;
+    }
+    .btn-emoji-pick:hover, .btn-emoji-pick:active {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+
+    /* EMOJI PICKER POPUP */
+    #emojiPicker {
+      position: fixed;
+      z-index: 9999;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(15, 20, 25, 0.16);
+      width: 280px;
+      max-height: 320px;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #emojiPicker.open { display: flex; }
+    .emoji-picker-tabs {
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--border);
+      padding: 4px 4px 0;
+      gap: 2px;
+      flex-shrink: 0;
+      background: var(--surface2);
+    }
+    .emoji-picker-tabs::-webkit-scrollbar { display: none; }
+    .emoji-tab {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 7px;
+      font-size: 16px;
+      border-radius: 6px 6px 0 0;
+      border-bottom: 2px solid transparent;
+      transition: background 0.1s;
+      line-height: 1;
+    }
+    .emoji-tab.active {
+      border-bottom-color: var(--accent);
+      background: var(--surface);
+    }
+    .emoji-tab:hover { background: var(--surface); }
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 2px;
+      padding: 8px;
+      overflow-y: auto;
+      flex: 1;
+      background: var(--surface);
+    }
+    .emoji-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px 2px;
+      border-radius: 6px;
+      transition: background 0.1s;
+      line-height: 1;
+      text-align: center;
+    }
+    .emoji-btn:hover { background: var(--surface2); }
+
+    .custom-rule-row input {
+      height: 32px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 4px 8px;
+      width: 100%;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .custom-rule-row input:focus {
+      border-color: var(--accent);
+    }
+
+    .custom-rule-row input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    .btn-remove-custom-rule {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      height: 32px;
+      width: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-remove-custom-rule:hover, .btn-remove-custom-rule:active {
+      background: rgba(244, 33, 46, 0.15);
+      color: var(--red);
+      border-color: rgba(244, 33, 46, 0.3);
+    }
+
+    .btn-add-custom-rule {
+      background: var(--surface2);
+      border: 1px dashed var(--border2);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+      margin-top: 4px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-add-custom-rule:hover, .btn-add-custom-rule:active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+
+    .custom-rules-empty {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 10px;
+      background: var(--surface2);
+      border-radius: 6px;
+      border: 1px dashed var(--border);
+    }
+
+    /* =============================================
+       FOOTER NOTE
+    ============================================= */
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    /* =============================================
+       ANIMATIONS / MISC
+    ============================================= */
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(0.93); }
+      100% { transform: scale(1); }
+    }
+
+    .pop-anim { animation: pop 0.15s ease; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    /* Desktop adjustments */
+    @media (min-width: 600px) {
+      body { align-items: center; background: #080808; }
+
+      main {
+        width: 100%;
+        max-width: 600px;
+      }
+
+      header {
+        width: 100%;
+        max-width: 600px;
+        border-left: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+
+      .footer-note {
+        max-width: 600px;
+        width: 100%;
+        border-left: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+
+      .settings-panel {
+        max-width: 500px;
+        margin: auto;
+        border-radius: var(--radius);
+        max-height: 80dvh;
+      }
+
+      .settings-overlay {
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    /* BOTÓN INSTALAR PWA Y BANNER ACTUALIZACIÓN */
+    .btn-install-pwa {
+      background: rgba(29, 155, 240, 0.15);
+      border: 1px solid rgba(29, 155, 240, 0.4);
+      color: var(--accent);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .btn-install-pwa:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .update-banner {
+      background: linear-gradient(90deg, #1d9bf0, #7928ca);
+      color: #fff;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      max-width: 600px;
+      width: 100%;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      animation: slideDown 0.25s ease;
+    }
+    .btn-apply-update {
+      background: var(--text);
+      color: var(--surface);
+      border: none;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    /* OVERLAY ACTIVACIÓN DE LICENCIA (GATEKEEPER) */
+    .license-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 20, 25, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+    }
+    .license-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 420px;
+      padding: 28px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(15, 20, 25, 0.15);
+      animation: popIn 0.25s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .license-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: rgba(121, 40, 202, 0.1);
+      color: #6d28d9;
+      border: 1px solid rgba(121, 40, 202, 0.25);
+      margin-bottom: 14px;
+    }
+    .license-logo {
+      width: 56px;
+      height: 56px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .license-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .license-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 18px;
+      max-width: 320px;
+    }
+    .license-input-wrap {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    .license-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border2);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-align: center;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .license-input:focus {
+      border-color: var(--accent);
+    }
+    .license-feedback {
+      font-size: 12px;
+      font-weight: 600;
+      min-height: 20px;
+      margin-bottom: 12px;
+    }
+    .license-feedback.error { color: var(--red); }
+    .license-feedback.success { color: var(--green); }
+
+    .btn-activate-license {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-activate-license:hover { opacity: 0.92; }
+    .btn-activate-license:active { transform: scale(0.98); }
+
+    .license-divider {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      margin: 18px 0 14px;
+      color: var(--text-muted);
+      font-size: 11.5px;
+    }
+    .license-divider::before, .license-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .license-divider span {
+      padding: 0 10px;
+    }
+
+    .btn-buy-whatsapp {
+      width: 100%;
+      background: rgba(37, 211, 102, 0.12);
+      border: 1px solid rgba(37, 211, 102, 0.35);
+      color: #25d366;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background 0.15s;
+    }
+    .btn-buy-whatsapp:hover {
+      background: rgba(37, 211, 102, 0.22);
+    }
+
+    /* CARD DE LICENCIA EN SETTINGS */
+    .settings-license-card {
+      background: linear-gradient(180deg, rgba(121,40,202,0.12) 0%, rgba(29,155,240,0.06) 100%);
+      border: 1px solid rgba(121, 40, 202, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .settings-license-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .settings-license-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .license-status-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(0, 186, 124, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(0, 186, 124, 0.3);
+    }
+    .settings-license-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .settings-license-key {
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .btn-change-license {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+/* =============================================
+   HILO DE TWEETS (TEMA CLARO & CORTE VISUAL)
+============================================= */
+.hilo-card {
+  margin-top: 0;
+  border: 1px solid #d8b4fe;
+  background: #faf7ff;
+}
+.hilo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid #ede9fe;
+}
+.hilo-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #6d28d9;
+}
+.hilo-badge {
+  font-size: 0.75rem;
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #c4b5fd;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-weight: 600;
+}
+.hilo-note {
+  font-size: 0.75rem;
+  color: #4b5563;
+  padding: 6px 16px 10px;
+  line-height: 1.4;
+}
+.hilo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+.hilo-tweet {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 20, 25, 0.04);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.hilo-tweet.cutter-active {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+}
+.hilo-tweet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+.hilo-tweet-label {
+  font-size: 0.75rem;
+  color: #334155;
+  font-weight: 700;
+}
+.hilo-tweet-chars {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+}
+.hilo-tweet-body {
+  width: 100%;
+  background: #ffffff;
+  border: none;
+  color: #0f1419;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  padding: 10px 12px;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  min-height: 60px;
+  field-sizing: content;
+}
+.hilo-tweet-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafafa;
+  flex-wrap: wrap;
+}
+.btn-copy-tweet {
+  font-size: 0.75rem;
+  padding: 5px 12px;
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #c4b5fd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 600;
+}
+.btn-copy-tweet:hover {
+  background: #ddd6fe;
+}
+.btn-copy-tweet.copied {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+/* BANNER DE CORTE APLICADO */
+.hilo-cut-applied-banner {
+  background: #fdf2f8;
+  border-top: 1px dashed #f472b6;
+  border-bottom: 1px dashed #f472b6;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: #9d174d;
+}
+.hilo-cut-applied-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-copy-tweet:hover {
+  background: #7c3aed44;
+}
+.btn-copy-tweet.copied {
+  background: #16532244;
+  color: #4ade80;
+  border-color: #16532266;
+}
+
+
+/* =============================================
+   SECCIONES COLAPSABLES (Hilo + Modificaciones)
+============================================= */
+.collapsible-card .collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  gap: 8px;
+  user-select: none;
+}
+.collapsible-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.collapsible-arrow {
+  font-size: 0.65rem;
+  color: #555;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.collapsible-card:not(.collapsed) .collapsible-arrow {
+  transform: rotate(90deg);
+}
+.collapsible-body {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.28s ease, opacity 0.22s ease;
+  opacity: 0;
+}
+.collapsible-card:not(.collapsed) .collapsible-body {
+  max-height: 9999px;
+  opacity: 1;
+}
+/* Audit header styles via collapsible */
+.audit-card .collapsible-header {
+  padding: 12px 16px;
+}
+.audit-card .audit-list {
+  padding: 0 0 4px;
+}
+/* Hilo header styles via collapsible */
+.hilo-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-right: 12px;
+}
+.hilo-header-bar .collapsible-header {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px 10px;
+  border-bottom: none !important;
+}
+.hilo-card:not(.collapsed) .hilo-header-bar {
+  border-bottom: 1px solid #1e1e2e;
+}
+.btn-hilo-config {
+  background: #7c3aed22;
+  border: 1px solid #7c3aed44;
+  color: #a78bfa;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-hilo-config:hover, .btn-hilo-config.active {
+  background: #7c3aed44;
+  border-color: #a78bfa;
+  transform: scale(1.05);
+}
+.hilo-config-panel {
+  background: #141324;
+  border-bottom: 1px solid #2d264f;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.82rem;
+}
+.hilo-config-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hilo-config-toggle-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.hilo-config-toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #8b5cf6;
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.hilo-config-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hilo-config-toggle-text strong {
+  color: #e5e5e5;
+  font-size: 0.85rem;
+}
+.hilo-config-toggle-text small {
+  color: #8e8ba7;
+  font-size: 0.73rem;
+  line-height: 1.3;
+}
+.hilo-config-title-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.hilo-config-label strong {
+  color: #e5e5e5;
+  font-size: 0.85rem;
+}
+.hilo-config-label small {
+  color: #8e8ba7;
+  font-size: 0.73rem;
+  margin-left: 4px;
+}
+.hilo-config-toggle-text strong {
+  color: #1e1b4b;
+}
+.hilo-config-toggle-text small {
+  color: #6b7280;
+}
+.hilo-config-label strong {
+  color: #1e1b4b;
+}
+.hilo-config-label small {
+  color: #6b7280;
+  font-size: 0.73rem;
+  margin-left: 4px;
+}
+.hilo-quick-presets {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-hilo-preset {
+  background: #ffffff;
+  border: 1px solid #c4b5fd;
+  color: #6d28d9;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-weight: 500;
+}
+.btn-hilo-preset:hover {
+  background: #ede9fe;
+  border-color: #7c3aed;
+}
+.hilo-input-emoji-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hilo-opt-input {
+  flex: 1;
+  height: 32px;
+  background: #ffffff;
+  border: 1px solid #c4b5fd;
+  border-radius: 6px;
+  color: #0f1419;
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.hilo-opt-input:focus {
+  border-color: #7c3aed;
+}
+.hilo-input-emoji-wrap .btn-emoji-pick {
+  background: #ffffff;
+  border-color: #c4b5fd;
+  color: #6d28d9;
+}
+.btn-hilo-cut {
+  font-size: 0.75rem;
+  padding: 5px 11px;
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #c4b5fd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-hilo-cut:hover, .btn-hilo-cut.active {
+  background: #ddd6fe;
+  border-color: #7c3aed;
+  color: #5b21b6;
+}
+.btn-hilo-uncut {
+  font-size: 0.74rem;
+  padding: 4px 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-hilo-uncut:hover {
+  background: #fecaca;
+}
+.btn-hilo-reset-cuts {
+  background: #ede9fe;
+  border: 1px dashed #7c3aed;
+  color: #6d28d9;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-hilo-reset-cuts:hover {
+  background: #ddd6fe;
+}
+.hilo-cut-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: #6d28d9;
+  background: #ede9fe;
+  border: 1px solid #c4b5fd;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-right: auto;
+}
+
+/* =============================================
+   PANEL DE CORTE VISUAL INTERACTIVO
+============================================= */
+.hilo-visual-cutter {
+  padding: 12px;
+  background: #f8fafc;
+  border-top: 1.5px solid #c4b5fd;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.2s ease;
+}
+.hilo-cutter-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.hilo-cutter-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5b21b6;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hilo-cutter-title small {
+  font-size: 0.73rem;
+  font-weight: 500;
+  color: #64748b;
+}
+.hilo-words-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 6px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+  line-height: 1.8;
+}
+.cut-word-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.86rem;
+  transition: all 0.12s ease;
+  user-select: none;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1e293b;
+}
+.cut-word-chip:hover {
+  border-color: #8b5cf6;
+  background: #f5f3ff;
+  transform: translateY(-1px);
+}
+.cut-word-chip.word-stays {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+.cut-word-chip.word-pivot {
+  background: #fef08a;
+  color: #854d0e;
+  border-color: #eab308;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px #ca8a04;
+}
+.cut-word-chip.word-moves {
+  background: #f5f3ff;
+  color: #6d28d9;
+  border-color: #ddd6fe;
+}
+.cut-scissor-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.hilo-cutter-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cutter-preview-box {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cutter-preview-box.stays {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+.cutter-preview-box.moves {
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #6d28d9;
+}
+.cutter-preview-box strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+.cutter-preview-snippet {
+  font-size: 0.72rem;
+  opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hilo-cutter-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.btn-confirm-cut {
+  background: #7c3aed;
+  color: #ffffff;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-confirm-cut:hover:not(:disabled) {
+  background: #6d28d9;
+  transform: translateY(-1px);
+}
+.btn-confirm-cut:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-cancel-cut {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-cancel-cut:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" aria-label="X" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+    Message Adapter
+  </div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <button type="button" class="btn-install-pwa" id="btnInstallPwa" style="display:none;" title="Instalar aplicación en tu dispositivo">
+      📲 Instalar app
+    </button>
+    <button class="btn-settings" id="btnSettings" aria-label="Configuración">
+      ⚙️ Opciones
+    </button>
+  </div>
+</header>
+
+<div class="update-banner" id="pwaUpdateBanner" style="display:none;">
+  <span>✨ Nueva actualización disponible</span>
+  <button type="button" class="btn-apply-update" id="btnApplyUpdate">Actualizar ahora</button>
+</div>
+
+<!-- ============================================================
+     MAIN
+============================================================ -->
+<main id="mainScroll">
+
+  <!-- CAMPO 1: INPUT CARD (Altura fija, scroll interno) -->
+  <div class="card">
+    <div class="card-header-bar">
+      <span class="card-label">✏️ Tu texto</span>
+    </div>
+    <textarea
+      id="inputText"
+      placeholder="Escribí o pegá el texto que querés publicar en X..."
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="true"
+    ></textarea>
+    <div class="counter-bar">
+      <span class="counter-label">Caracteres originales</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="counter-value neutral" id="inputCount">0</span>
+        <div class="counter-ring" id="inputRing" title="Progreso hasta 280">
+          <svg width="28" height="28">
+            <circle class="ring-bg" cx="14" cy="14" r="11" />
+            <circle class="ring-fill" id="ringFill" cx="14" cy="14" r="11"
+              stroke-dasharray="69.1"
+              stroke-dashoffset="69.1"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE ACCESOS RÁPIDOS INTERACTIVOS -->
+  <div class="quick-bar-wrapper">
+    <div class="quick-bar-header">
+      <div class="quick-bar-title-wrap">
+        <span class="quick-bar-title">⚡ Activación rápida</span>
+        <span class="quick-badge" id="quickBadge">0 activas</span>
+      </div>
+      <div class="quick-bar-actions">
+        <button type="button" class="btn-quick-act" id="btnQuickAll" title="Activar todas las funciones">Todas</button>
+        <button type="button" class="btn-quick-act" id="btnQuickNone" title="Desactivar todas las funciones">Ninguna</button>
+      </div>
+    </div>
+    <div class="quick-pills-grid" id="pillsContainer"></div>
+  </div>
+
+  <!-- CAMPO 2: OUTPUT CARD (Altura fija, scroll interno) -->
+  <div class="card">
+    <div class="card-header-bar">
+      <span class="card-label">✨ Texto optimizado</span>
+    </div>
+    <textarea
+      class="output-text empty"
+      id="outputText"
+      readonly
+      placeholder="El texto transformado aparecerá aquí…"
+      spellcheck="false"
+    ></textarea>
+    <div class="output-counter-bar">
+      <div class="counter-info">
+        <div class="counter-badge neutral" id="outputBadge">
+          <span class="badge-dot"></span>
+          <span id="outputCount">0</span>
+        </div>
+        <span class="limit-label" id="outputLimitLabel">/ 280 (280 disp.)</span>
+      </div>
+      <button class="btn-copy" id="btnCopy" aria-label="Copiar texto optimizado">
+        📋 Copiar
+      </button>
+    </div>
+  </div>
+
+  <!-- HILO DE TWEETS -->
+  <div class="card hilo-card collapsible-card collapsed" id="hiloSection" style="display:none;">
+    <div class="hilo-header-bar">
+      <button type="button" class="collapsible-header" id="hiloToggle" aria-expanded="false">
+        <div class="collapsible-header-left">
+          <span class="collapsible-arrow">▶</span>
+          <span class="hilo-title">🧵 Hilo</span>
+        </div>
+        <span class="hilo-badge" id="hiloBadge">3 tweets</span>
+      </button>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <button type="button" class="btn-hilo-reset-cuts" id="btnHiloResetCuts" style="display:none;" title="Eliminar todos los saltos manuales y volver al cálculo automático">🔄 Restablecer cortes</button>
+        <button type="button" class="btn-hilo-config" id="btnHiloConfig" title="Configurar numeración del hilo" aria-label="Configurar hilo">⚙️</button>
+      </div>
+    </div>
+    <div class="collapsible-body">
+      <!-- PANEL DE CONFIGURACIÓN DE HILO -->
+      <div class="hilo-config-panel" id="hiloConfigPanel" style="display:none;">
+        <div class="hilo-config-row">
+          <label class="hilo-config-toggle-label" for="hiloOptNumberFirst">
+            <input type="checkbox" id="hiloOptNumberFirst" checked />
+            <span class="hilo-config-toggle-text">
+              <strong>Numerar el primer mensaje</strong>
+              <small>Si se desactiva, el 1er tweet no lleva número y el 2do arranca en 1/(X-1)</small>
+            </span>
+          </label>
+        </div>
+        <div class="hilo-config-row">
+          <div class="hilo-config-title-header">
+            <div class="hilo-config-label">
+              <strong>Texto o emoji en la cabecera</strong>
+              <small>(ej: 1/x 🧵 o 1/x MENSAJE)</small>
+            </div>
+            <div class="hilo-quick-presets">
+              <button type="button" class="btn-hilo-preset" data-text="🧵" title="Predefinido emoji de hilo">🧵</button>
+              <button type="button" class="btn-hilo-preset" data-text="🧵 Hilo" title="Predefinido 🧵 Hilo">🧵 Hilo</button>
+              <button type="button" class="btn-hilo-preset" data-text="👇" title="Predefinido flecha">👇</button>
+              <button type="button" class="btn-hilo-preset" data-text="" title="Sin texto adicional">Ninguno</button>
+            </div>
+          </div>
+          <div class="hilo-input-emoji-wrap">
+            <input type="text" id="hiloOptTitle" class="hilo-opt-input" placeholder="Ej: 🧵, Hilo, MENSAJE..." maxlength="30" />
+            <button type="button" class="btn-emoji-pick" id="btnHiloEmoji" aria-label="Elegir emoji para cabecera de hilo">😊</button>
+          </div>
+        </div>
+      </div>
+      <div class="hilo-note">El texto supera los 280 caracteres. Para dividir un mensaje en una parte específica, <strong>hacé clic en el texto del tweet</strong> y presioná <strong>"✂️ Dividir aquí"</strong>; todo el resto se adaptará automáticamente.</div>
+      <div class="hilo-list" id="hiloList"></div>
+    </div>
+  </div>
+
+  <!-- AUDIT CARD / DETALLE DE MODIFICACIONES -->
+  <div class="card audit-card collapsible-card collapsed" id="auditCard">
+    <button type="button" class="collapsible-header" id="auditToggle" aria-expanded="false">
+      <div class="collapsible-header-left">
+        <span class="collapsible-arrow">▶</span>
+        <span>🔍 Modificaciones aplicadas</span>
+      </div>
+      <span class="audit-total-badge zero" id="auditTotalBadge">0 caracteres ahorrados</span>
+    </button>
+    <div class="collapsible-body">
+      <div class="audit-list" id="auditList">
+        <div class="audit-empty" id="auditEmpty">No se aplicaron modificaciones en este texto.</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="footer-note">
+  Límite X: <strong>280 chars</strong> &nbsp;·&nbsp; <span style="opacity:0.85;font-weight:700">X Adapter v2.8 (App Cerrada)</span>
+</div>
+
+<!-- ============================================================
+     SETTINGS OVERLAY (ACORDEÓN DE FUNCIONALIDADES)
+============================================================ -->
+<div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true">
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-header">
+      <div class="drag-handle"></div>
+      <span class="settings-title">⚙️ Configuración detallada</span>
+      <button class="btn-close" id="btnClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="settings-body">
+
+      <!-- TARJETA DE LICENCIA DEL PRODUCTO -->
+      <div class="settings-license-card">
+        <div class="settings-license-header">
+          <div class="settings-license-title">
+            <span>🔑 Licencia del producto</span>
+          </div>
+          <span class="license-status-tag" id="settingsLicenseTag">Activa ✅</span>
+        </div>
+        <p class="settings-license-desc">
+          Aplicación activada y vinculada a este dispositivo.
+        </p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="settings-license-key" id="settingsLicenseKeyText">XADAPT-••••-••••-••••</span>
+          <button type="button" class="btn-change-license" id="btnReactivateLicense">Cambiar clave</button>
+        </div>
+      </div>
+
+      <div class="settings-toolbar">
+    <span class="settings-toolbar-hint">Tocá una sección para desplegarla</span>
+    <div class="settings-toolbar-actions">
+      <button type="button" class="btn-acc-action" id="btnAccExpandAll">Abrir todo</button>
+      <button type="button" class="btn-acc-action" id="btnAccCollapseAll">Cerrar todo</button>
+    </div>
+  </div>
+
+    <!-- 0. GRUPO AL COMIENZO: REEMPLAZOS PERSONALIZADOS -->
+    <div class="settings-group-card" data-group="custom">
+      <div class="settings-group-header" role="button" tabindex="0" title="Tocá para desplegar/ocultar">
+        <div class="settings-group-title-wrap">
+          <span class="settings-group-chevron">▼</span>
+          <span class="settings-group-title">✏️ Reemplazos Personalizados</span>
+        </div>
+        <span class="settings-group-badge" id="badge_group_custom">0 activas</span>
+      </div>
+      <div class="settings-group-items">
+        <label class="toggle-row" for="toggle_customRules">
+          <div class="toggle-info">
+            <div class="toggle-name">✏️ Activar reemplazos personalizados</div>
+            <div class="toggle-desc">Sustituye automáticamente las palabras definidas en tu lista personalizada.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_customRules" data-key="customRules" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+
+        <div class="custom-rules-box" id="customRulesBox">
+          <div class="custom-rules-header">
+            <span>Texto a buscar</span>
+            <span>Reemplazar por</span>
+            <span style="text-align:center;">Acción</span>
+          </div>
+          <div class="custom-rules-list" id="customRulesList"></div>
+          <button type="button" class="btn-add-custom-rule" id="btnAddCustomRule">
+            ➕ Agregar palabra
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group-card " data-group="style">
+      <div class="settings-group-header" role="button" tabindex="0" title="Tocá para desplegar/ocultar">
+        <div class="settings-group-title-wrap">
+          <span class="settings-group-chevron">▼</span>
+          <span class="settings-group-title">📝 Ortografía, Estilo y Texto</span>
+        </div>
+        <span class="settings-group-badge" id="badge_group_style">0 activas</span>
+      </div>
+      <div class="settings-group-items">
+  
+        <label class="toggle-row" for="toggle_spellCheck">
+          <div class="toggle-info">
+            <div class="toggle-name">🔤 Corrección ortográfica</div>
+            <div class="toggle-desc">Activa la corrección ortográfica nativa para que el navegador subraye palabras con posibles errores en el editor.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_spellCheck" data-key="spellCheck" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+
+        <label class="toggle-row" for="toggle_grammarContractions">
+          <div class="toggle-info">
+            <div class="toggle-name">🔗 Contracciones gramaticales (del / al)</div>
+            <div class="toggle-desc">Aplica las contracciones oficiales del español (de el ➔ del, a el ➔ al), respetando mayúsculas y ahorrando caracteres.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_grammarContractions" data-key="grammarContractions" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_abbrev">
+          <div class="toggle-info">
+            <div class="toggle-name">✂️ Abreviaciones y ordinales</div>
+            <div class="toggle-desc">Acorta términos comunes (también ➔ tmb, información ➔ info, xfa) y ordinales (primero ➔ 1ro, segundo ➔ 2do, tercero ➔ 3ro, etc.).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_abbrev" data-key="abbrev" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_convertQuotes">
+          <div class="toggle-info">
+            <div class="toggle-name">💬 Comillas dobles a simples</div>
+            <div class="toggle-desc">Convierte comillas dobles (“ ” o " ") a comillas simples (' ') para un estilo más liviano y conciso.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_convertQuotes" data-key="convertQuotes" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_removeDuplicates">
+          <div class="toggle-info">
+            <div class="toggle-name">🔁 Eliminar palabras repetidas</div>
+            <div class="toggle-desc">Detecta y limpia palabras duplicadas seguidas involuntarias (ej: "el el" ➔ "el", "que que" ➔ "que").</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_removeDuplicates" data-key="removeDuplicates" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_smartLower">
+          <div class="toggle-info">
+            <div class="toggle-name">⬇️ Minúsculas inteligentes</div>
+            <div class="toggle-desc">Convierte palabras en MAYÚSCULAS sostenidas a minúsculas, respetando inicios de oración y puntuación.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_smartLower" data-key="smartLower" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+      </div>
+    </div>
+  
+    <div class="settings-group-card collapsed" data-group="geo">
+      <div class="settings-group-header" role="button" tabindex="0" title="Tocá para desplegar/ocultar">
+        <div class="settings-group-title-wrap">
+          <span class="settings-group-chevron">▼</span>
+          <span class="settings-group-title">🌍 Nacionalidades y Geografía</span>
+        </div>
+        <span class="settings-group-badge" id="badge_group_geo">0 activas</span>
+      </div>
+      <div class="settings-group-items">
+  
+        <label class="toggle-row" for="toggle_replaceCountries">
+          <div class="toggle-info">
+            <div class="toggle-name">🚩 Países por banderas</div>
+            <div class="toggle-desc">Sustituye nombres de países por el emoji de su bandera (Argentina ➔ 🇦🇷, España ➔ 🇪🇸, EE.UU. ➔ 🇺🇸).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replaceCountries" data-key="replaceCountries" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_replaceGentilicios">
+          <div class="toggle-info">
+            <div class="toggle-name">👨👩🚩 Gentilicios (♂/♀ + bandera)</div>
+            <div class="toggle-desc">Sustituye gentilicios por 👨+bandera si es masculino o 👩+bandera si es femenino (argentino ➔ 👨🇦🇷, chilena ➔ 👩🇨🇱).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replaceGentilicios" data-key="replaceGentilicios" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_replaceCities">
+          <div class="toggle-info">
+            <div class="toggle-name">🏙️ Ciudades a emoji + bandera</div>
+            <div class="toggle-desc">Reemplaza ciudades principales (Buenos Aires ➔ 🏙️🇦🇷, París ➔ 🗼🇫🇷, Nueva York ➔ 🗽🇺🇸).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replaceCities" data-key="replaceCities" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+      </div>
+    </div>
+  
+    <div class="settings-group-card collapsed" data-group="spacing">
+      <div class="settings-group-header" role="button" tabindex="0" title="Tocá para desplegar/ocultar">
+        <div class="settings-group-title-wrap">
+          <span class="settings-group-chevron">▼</span>
+          <span class="settings-group-title">🧹 Espacios, Saltos y Signos</span>
+        </div>
+        <span class="settings-group-badge" id="badge_group_spacing">0 activas</span>
+      </div>
+      <div class="settings-group-items">
+  
+        <label class="toggle-row" for="toggle_trimSpaces">
+          <div class="toggle-info">
+            <div class="toggle-name">🧹 Sacar espacios innecesarios</div>
+            <div class="toggle-desc">Elimina espacios dobles, espacios al inicio/final de oraciones y antes de signos de puntuación.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_trimSpaces" data-key="trimSpaces" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_removeCommas">
+          <div class="toggle-info">
+            <div class="toggle-name">🧹 Extraer comas (,)</div>
+            <div class="toggle-desc">Elimina todas las comas (,) del texto para ahorrar caracteres sin perder la inteligibilidad del mensaje.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_removeCommas" data-key="removeCommas" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_removePeriods">
+          <div class="toggle-info">
+            <div class="toggle-name">🔵 Sacar puntos finales</div>
+            <div class="toggle-desc">Elimina los puntos al final de oraciones y renglones (ahorra 1 char por párrafo sin perder claridad).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_removePeriods" data-key="removePeriods" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_collapseNewlines">
+          <div class="toggle-info">
+            <div class="toggle-name">↵ Sacar saltos de línea innecesarios</div>
+            <div class="toggle-desc">Colapsa múltiples saltos de línea o renglones vacíos consecutivos, dejando un único salto entre párrafos.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_collapseNewlines" data-key="collapseNewlines" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_cleanPunctuation">
+          <div class="toggle-info">
+            <div class="toggle-name">❗ Eliminar signos dobles y apertura</div>
+            <div class="toggle-desc">Quita signos de apertura innecesarios (¡, ¿) y colapsa signos repetidos (!!! ➔ !, ??? ➔ ?).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_cleanPunctuation" data-key="cleanPunctuation" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+      </div>
+    </div>
+  
+    <div class="settings-group-card collapsed" data-group="numbers">
+      <div class="settings-group-header" role="button" tabindex="0" title="Tocá para desplegar/ocultar">
+        <div class="settings-group-title-wrap">
+          <span class="settings-group-chevron">▼</span>
+          <span class="settings-group-title">🔢 Números, Fechas y Medidas</span>
+        </div>
+        <span class="settings-group-badge" id="badge_group_numbers">0 activas</span>
+      </div>
+      <div class="settings-group-items">
+  
+        <label class="toggle-row" for="toggle_replaceNumbers">
+          <div class="toggle-info">
+            <div class="toggle-name">🔢 Números en palabras a dígitos</div>
+            <div class="toggle-desc">Convierte números escritos (veinte ➔ 20, cien ➔ 100, mil ➔ 1000) a números arábigos compactos.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replaceNumbers" data-key="replaceNumbers" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_shortDates">
+          <div class="toggle-info">
+            <div class="toggle-name">📅 Fechas escritas a formato corto</div>
+            <div class="toggle-desc">Convierte fechas textuales (ej: "15 de octubre de 2024" ➔ "15/10/24", "3 de marzo" ➔ "3/3").</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_shortDates" data-key="shortDates" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_replacePercent">
+          <div class="toggle-info">
+            <div class="toggle-name">📊 Porcentajes a números y símbolos</div>
+            <div class="toggle-desc">Convierte frases cuantitativas (ej: "cincuenta por ciento" ➔ "50%", "la mitad" ➔ "1/2").</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replacePercent" data-key="replacePercent" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_replaceCurrency">
+          <div class="toggle-info">
+            <div class="toggle-name">💰 Monedas escritas a símbolos</div>
+            <div class="toggle-desc">Sustituye nombres de divisas (dólares ➔ 💵, pesos ➔ $, euros ➔ €, libras ➔ £).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replaceCurrency" data-key="replaceCurrency" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_replaceUnits">
+          <div class="toggle-info">
+            <div class="toggle-name">🌡️ Unidades de medida</div>
+            <div class="toggle-desc">Abrevia unidades (kilómetros ➔ km, metros ➔ m, litros ➔ L, grados centígrados ➔ °C).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replaceUnits" data-key="replaceUnits" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+      </div>
+    </div>
+  
+    <div class="settings-group-card collapsed" data-group="emojis">
+      <div class="settings-group-header" role="button" tabindex="0" title="Tocá para desplegar/ocultar">
+        <div class="settings-group-title-wrap">
+          <span class="settings-group-chevron">▼</span>
+          <span class="settings-group-title">🐾 Emojis y Objetos</span>
+        </div>
+        <span class="settings-group-badge" id="badge_group_emojis">0 activas</span>
+      </div>
+      <div class="settings-group-items">
+  
+        <label class="toggle-row" for="toggle_replaceAnimals">
+          <div class="toggle-info">
+            <div class="toggle-name">🐾 Animales por emojis</div>
+            <div class="toggle-desc">Sustituye nombres de animales por su emoji representativo (perros ➔ 🐶, gatos ➔ 🐱, caballos ➔ 🐴).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replaceAnimals" data-key="replaceAnimals" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_replaceTransport">
+          <div class="toggle-info">
+            <div class="toggle-name">🚀 Medios de transporte por emojis</div>
+            <div class="toggle-desc">Sustituye vehículos por su emoji (avión ➔ ✈️, auto ➔ 🚗, tren ➔ 🚆, barco ➔ 🚢, bici ➔ 🚲).</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_replaceTransport" data-key="replaceTransport" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+      </div>
+    </div>
+  
+    <div class="settings-group-card collapsed" data-group="twitter">
+      <div class="settings-group-header" role="button" tabindex="0" title="Tocá para desplegar/ocultar">
+        <div class="settings-group-title-wrap">
+          <span class="settings-group-chevron">▼</span>
+          <span class="settings-group-title">📢 Herramientas de X (Twitter)</span>
+        </div>
+        <span class="settings-group-badge" id="badge_group_twitter">0 activas</span>
+      </div>
+      <div class="settings-group-items">
+  
+        <label class="toggle-row" for="toggle_detectUrls">
+          <div class="toggle-info">
+            <div class="toggle-name">🔗 URLs (cómputo 23 chars fijos en X)</div>
+            <div class="toggle-desc">En X todos los links ocupan 23 caracteres. Muestra el ahorro real en el auditor y el contador ajustado.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_detectUrls" data-key="detectUrls" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+        <label class="toggle-row" for="toggle_detectHashtags">
+          <div class="toggle-info">
+            <div class="toggle-name">📢 Detector hashtags y menciones</div>
+            <div class="toggle-desc">Analiza la cantidad de hashtags (#) y menciones (@) que contiene el texto y cuántos caracteres consumen.</div>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle_detectHashtags" data-key="detectHashtags" />
+            <div class="toggle-track"></div>
+          </div>
+        </label>
+    
+      </div>
+    </div>
+  
+    </div>
+  </div>
+
+  <div class="settings-footer" style="padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--surface); flex-shrink: 0; gap: 10px;">
+    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;" id="appVersionBadge">v2.8</span>
+    <button type="button" id="btnForceReload" style="background: var(--surface2); border: 1px solid var(--border2); color: var(--text); font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.15s;" title="Borra la memoria temporal y descarga la versión más reciente">
+      🔄 Limpiar caché y actualizar
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================
+     PANTALLA DE ACTIVACIÓN DE LICENCIA (GATEKEEPER)
+============================================================ -->
+<div class="license-overlay" id="licenseOverlay" role="dialog" aria-modal="true" style="display:none;">
+  <div class="license-modal">
+    <span class="license-badge">🔒 Producto Protegido</span>
+    <div class="license-logo">
+      <svg viewBox="0 0 24 24" aria-label="X" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#fff">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+    </div>
+    <h2 class="license-title">X Message Adapter</h2>
+    <p class="license-desc">
+      Ingresá tu clave de licencia para activar la aplicación y habilitar todas las funcionalidades en este dispositivo.
+    </p>
+
+    <div class="license-input-wrap">
+      <input
+        type="text"
+        id="licenseKeyInput"
+        class="license-input"
+        placeholder="XADAPT-XXXX-XXXX-XXXX"
+        autocomplete="off"
+        spellcheck="false"
+        maxlength="24"
+      />
+    </div>
+
+    <div class="license-feedback" id="licenseFeedback"></div>
+
+    <button type="button" class="btn-activate-license" id="btnActivateLicense">
+      🔓 Activar aplicación
+    </button>
+
+    <div class="license-divider">
+      <span>¿No tenés una licencia todavía?</span>
+    </div>
+
+    <a
+      href="https://wa.me/?text=Hola!%20Quiero%20adquirir%20una%20licencia%20de%20X%20Message%20Adapter"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="btn-buy-whatsapp"
+      id="btnBuyWhatsApp"
+    >
+      💬 Comprar clave por WhatsApp
+    </a>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   ESTADO Y METADATA
+================================================================ */
+const X_LIMIT = 280;
+
+const FEATURES_META = [{"group":"custom","groupName":"✏️ Personalizados","key":"customRules","name":"✏️ Reemplazos personalizados","short":"Personalizados","icon":"✏️","desc":"Aplica tu propia lista de palabras a buscar y reemplazar automáticamente."},{"group":"style","groupName":"📝 Ortografía, Estilo y Texto","key":"spellCheck","name":"🔤 Corrección ortográfica","short":"Ortografía","icon":"🔤","desc":"Activa la corrección ortográfica nativa para que el navegador subraye palabras con posibles errores en el editor."},{"group":"style","groupName":"📝 Ortografía, Estilo y Texto","key":"grammarContractions","name":"🔗 Contracciones gramaticales","short":"Contracciones (del/al)","icon":"🔗","desc":"Aplica las contracciones oficiales del español (de el ➔ del, a el ➔ al), respetando mayúsculas y ahorrando caracteres."},{"group":"style","groupName":"📝 Ortografía, Estilo y Texto","key":"abbrev","name":"✂️ Abreviaciones y ordinales","short":"Abreviaciones (1ro...)","icon":"✂️","desc":"Acorta términos comunes (también ➔ tmb, información ➔ info, xfa) y ordinales (primero ➔ 1ro, segundo ➔ 2do, tercero ➔ 3ro, etc.)."},{"group":"style","groupName":"📝 Ortografía, Estilo y Texto","key":"convertQuotes","name":"💬 Comillas dobles a simples","short":"Comillas simples","icon":"💬","desc":"Convierte comillas dobles (“ ” o \" \") a comillas simples (' ') para un estilo más liviano y conciso."},{"group":"style","groupName":"📝 Ortografía, Estilo y Texto","key":"removeDuplicates","name":"🔁 Eliminar palabras repetidas","short":"Sin repeticiones","icon":"🔁","desc":"Detecta y limpia palabras duplicadas seguidas involuntarias (ej: \"el el\" ➔ \"el\", \"que que\" ➔ \"que\")."},{"group":"style","groupName":"📝 Ortografía, Estilo y Texto","key":"smartLower","name":"⬇️ Minúsculas inteligentes","short":"Bajar MAYÚS","icon":"⬇️","desc":"Convierte palabras en MAYÚSCULAS sostenidas a minúsculas, respetando inicios de oración y puntuación."},{"group":"geo","groupName":"🌍 Nacionalidades y Geografía","key":"replaceCountries","name":"🚩 Países por banderas","short":"Países ➔ 🚩","icon":"🚩","desc":"Sustituye nombres de países por el emoji de su bandera (Argentina ➔ 🇦🇷, España ➔ 🇪🇸, EE.UU. ➔ 🇺🇸)."},{"group":"geo","groupName":"🌍 Nacionalidades y Geografía","key":"replaceGentilicios","name":"👨👩🚩 Gentilicios (♂/♀ + bandera)","short":"Gentilicios","icon":"👨👩🚩","desc":"Sustituye gentilicios por 👨+bandera si es masculino o 👩+bandera si es femenino (argentino ➔ 👨🇦🇷, chilena ➔ 👩🇨🇱)."},{"group":"geo","groupName":"🌍 Nacionalidades y Geografía","key":"replaceCities","name":"🏙️ Ciudades a emoji + bandera","short":"Ciudades ➔ 🏙️","icon":"🏙️","desc":"Reemplaza ciudades principales (Buenos Aires ➔ 🏙️🇦🇷, París ➔ 🗼🇫🇷, Nueva York ➔ 🗽🇺🇸)."},{"group":"spacing","groupName":"🧹 Espacios, Saltos y Signos","key":"trimSpaces","name":"🧹 Sacar espacios innecesarios","short":"Sin espacios extra","icon":"🧹","desc":"Elimina espacios dobles, espacios al inicio/final de oraciones y antes de signos de puntuación."},{"group":"spacing","groupName":"🧹 Espacios, Saltos y Signos","key":"removeCommas","name":"🧹 Extraer comas (,)","short":"Sin comas","icon":"🧹","desc":"Elimina todas las comas (,) del texto para ahorrar caracteres sin perder la inteligibilidad del mensaje."},{"group":"spacing","groupName":"🧹 Espacios, Saltos y Signos","key":"removePeriods","name":"🔵 Sacar puntos finales","short":"Sin punto final","icon":"🔵","desc":"Elimina los puntos al final de oraciones y renglones (ahorra 1 char por párrafo sin perder claridad)."},{"group":"spacing","groupName":"🧹 Espacios, Saltos y Signos","key":"collapseNewlines","name":"↵ Sacar saltos de línea innecesarios","short":"Sin saltos extra","icon":"↵","desc":"Colapsa múltiples saltos de línea o renglones vacíos consecutivos, dejando un único salto entre párrafos."},{"group":"spacing","groupName":"🧹 Espacios, Saltos y Signos","key":"cleanPunctuation","name":"❗ Eliminar signos dobles y apertura","short":"Sin ¡ ¿ !!!","icon":"❗","desc":"Quita signos de apertura innecesarios (¡, ¿) y colapsa signos repetidos (!!! ➔ !, ??? ➔ ?)."},{"group":"numbers","groupName":"🔢 Números, Fechas y Medidas","key":"replaceNumbers","name":"🔢 Números en palabras a dígitos","short":"Nros. a dígitos","icon":"🔢","desc":"Convierte números escritos (veinte ➔ 20, cien ➔ 100, mil ➔ 1000) a números arábigos compactos."},{"group":"numbers","groupName":"🔢 Números, Fechas y Medidas","key":"shortDates","name":"📅 Fechas escritas a formato corto","short":"Fechas cortas","icon":"📅","desc":"Convierte fechas textuales (ej: \"15 de octubre de 2024\" ➔ \"15/10/24\", \"3 de marzo\" ➔ \"3/3\")."},{"group":"numbers","groupName":"🔢 Números, Fechas y Medidas","key":"replacePercent","name":"📊 Porcentajes a números y símbolos","short":"Porcentajes %","icon":"📊","desc":"Convierte frases cuantitativas (ej: \"cincuenta por ciento\" ➔ \"50%\", \"la mitad\" ➔ \"1/2\")."},{"group":"numbers","groupName":"🔢 Números, Fechas y Medidas","key":"replaceCurrency","name":"💰 Monedas escritas a símbolos","short":"Monedas $, €","icon":"💰","desc":"Sustituye nombres de divisas (dólares ➔ 💵, pesos ➔ $, euros ➔ €, libras ➔ £)."},{"group":"numbers","groupName":"🔢 Números, Fechas y Medidas","key":"replaceUnits","name":"🌡️ Unidades de medida","short":"Unidades km, kg","icon":"🌡️","desc":"Abrevia unidades (kilómetros ➔ km, metros ➔ m, litros ➔ L, grados centígrados ➔ °C)."},{"group":"emojis","groupName":"🐾 Emojis y Objetos","key":"replaceAnimals","name":"🐾 Animales por emojis","short":"Animales ➔ 🐾","icon":"🐾","desc":"Sustituye nombres de animales por su emoji representativo (perros ➔ 🐶, gatos ➔ 🐱, caballos ➔ 🐴)."},{"group":"emojis","groupName":"🐾 Emojis y Objetos","key":"replaceTransport","name":"🚀 Medios de transporte por emojis","short":"Transporte ➔ 🚀","icon":"🚀","desc":"Sustituye vehículos por su emoji (avión ➔ ✈️, auto ➔ 🚗, tren ➔ 🚆, barco ➔ 🚢, bici ➔ 🚲)."},{"group":"twitter","groupName":"📢 Herramientas de X (Twitter)","key":"detectUrls","name":"🔗 URLs (cómputo 23 chars fijos en X)","short":"URLs 23 chars","icon":"🔗","desc":"En X todos los links ocupan 23 caracteres. Muestra el ahorro real en el auditor y el contador ajustado."},{"group":"twitter","groupName":"📢 Herramientas de X (Twitter)","key":"detectHashtags","name":"📢 Detector hashtags y menciones","short":"Hashtags y @","icon":"📢","desc":"Analiza la cantidad de hashtags (#) y menciones (@) que contiene el texto y cuántos caracteres consumen."}];
+
+let _hiloTweets = []; // hilo tweet texts (module-level to avoid HTML-entity issues)
+let _hiloTweetObjs = []; // objects with { text, start, end, isManualCut, cutPoint }
+let _activeCutter = null; // { idx: number, wordIdx: number }
+
+function tokenizeWords(str) {
+  const tokens = [];
+  const regex = /\S+/g;
+  let m;
+  while ((m = regex.exec(str)) !== null) {
+    tokens.push({
+      word: m[0],
+      start: m.index,
+      end: m.index + m[0].length
+    });
+  }
+  return tokens;
+}
+
+const state = {
+  input: '',
+  customRules: [],
+  hiloManualBreaks: [],
+  hiloSettings: {
+    numberFirst: true,
+    title: ''
+  },
+  settings: {
+    "customRules": false,
+    "spellCheck": false,
+    "grammarContractions": false,
+    "abbrev": false,
+    "convertQuotes": false,
+    "removeDuplicates": false,
+    "smartLower": false,
+    "replaceCountries": false,
+    "replaceGentilicios": false,
+    "replaceCities": false,
+    "trimSpaces": false,
+    "removeCommas": false,
+    "removePeriods": false,
+    "collapseNewlines": false,
+    "cleanPunctuation": false,
+    "replaceNumbers": false,
+    "shortDates": false,
+    "replacePercent": false,
+    "replaceCurrency": false,
+    "replaceUnits": false,
+    "replaceAnimals": false,
+    "replaceTransport": false,
+    "detectUrls": false,
+    "detectHashtags": false
+  }
+};
+
+/* ================================================================
+   DICCIONARIOS EXISTENTES
+================================================================ */
+const COUNTRY_FLAGS = [
+  // América Latina y Caribe
+  { name: 'Estados Unidos', flag: '🇺🇸' },
+  { name: 'EE.UU.', flag: '🇺🇸' },
+  { name: 'EEUU', flag: '🇺🇸' },
+  { name: 'Argentina', flag: '🇦🇷' },
+  { name: 'España', flag: '🇪🇸' },
+  { name: 'Espana', flag: '🇪🇸' },
+  { name: 'México', flag: '🇲🇽' },
+  { name: 'Mexico', flag: '🇲🇽' },
+  { name: 'Brasil', flag: '🇧🇷' },
+  { name: 'Brazil', flag: '🇧🇷' },
+  { name: 'Colombia', flag: '🇨🇴' },
+  { name: 'Chile', flag: '🇨🇱' },
+  { name: 'Uruguay', flag: '🇺🇾' },
+  { name: 'Paraguay', flag: '🇵🇾' },
+  { name: 'Bolivia', flag: '🇧🇴' },
+  { name: 'Perú', flag: '🇵🇪' },
+  { name: 'Peru', flag: '🇵🇪' },
+  { name: 'Ecuador', flag: '🇪🇨' },
+  { name: 'Venezuela', flag: '🇻🇪' },
+  { name: 'Canadá', flag: '🇨🇦' },
+  { name: 'Canada', flag: '🇨🇦' },
+  { name: 'Cuba', flag: '🇨🇺' },
+  { name: 'Puerto Rico', flag: '🇵🇷' },
+  { name: 'República Dominicana', flag: '🇩🇴' },
+  { name: 'Republica Dominicana', flag: '🇩🇴' },
+  { name: 'Guatemala', flag: '🇬🇹' },
+  { name: 'Honduras', flag: '🇭🇳' },
+  { name: 'El Salvador', flag: '🇸🇻' },
+  { name: 'Nicaragua', flag: '🇳🇮' },
+  { name: 'Costa Rica', flag: '🇨🇷' },
+  { name: 'Panamá', flag: '🇵🇦' },
+  { name: 'Panama', flag: '🇵🇦' },
+
+  // Europa
+  { name: 'Reino Unido', flag: '🇬🇧' },
+  { name: 'Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { name: 'Francia', flag: '🇫🇷' },
+  { name: 'Alemania', flag: '🇩🇪' },
+  { name: 'Italia', flag: '🇮🇹' },
+  { name: 'Portugal', flag: '🇵🇹' },
+  { name: 'Países Bajos', flag: '🇳🇱' },
+  { name: 'Paises Bajos', flag: '🇳🇱' },
+  { name: 'Holanda', flag: '🇳🇱' },
+  { name: 'Bélgica', flag: '🇧🇪' },
+  { name: 'Belgica', flag: '🇧🇪' },
+  { name: 'Suiza', flag: '🇨🇭' },
+  { name: 'Suecia', flag: '🇸🇪' },
+  { name: 'Noruega', flag: '🇳🇴' },
+  { name: 'Rusia', flag: '🇷🇺' },
+  { name: 'Ucrania', flag: '🇺🇦' },
+  { name: 'Grecia', flag: '🇬🇷' },
+  { name: 'Polonia', flag: '🇵🇱' },
+  { name: 'Austria', flag: '🇦🇹' },
+  { name: 'Irlanda', flag: '🇮🇪' },
+
+  // Asia / Oceanía / Medio Oriente / África
+  { name: 'China', flag: '🇨🇳' },
+  { name: 'Japón', flag: '🇯🇵' },
+  { name: 'Japon', flag: '🇯🇵' },
+  { name: 'Corea del Sur', flag: '🇰🇷' },
+  { name: 'India', flag: '🇮🇳' },
+  { name: 'Australia', flag: '🇦🇺' },
+  { name: 'Nueva Zelanda', flag: '🇳🇿' },
+  { name: 'Israel', flag: '🇮🇱' },
+  { name: 'Turquía', flag: '🇹🇷' },
+  { name: 'Turquia', flag: '🇹🇷' },
+  { name: 'Arabia Saudita', flag: '🇸🇦' },
+  { name: 'Qatar', flag: '🇶🇦' },
+  { name: 'Emiratos Árabes', flag: '🇦🇪' },
+  { name: 'Emiratos Arabes', flag: '🇦🇪' },
+  { name: 'Egipto', flag: '🇪🇬' },
+  { name: 'Sudáfrica', flag: '🇿🇦' },
+  { name: 'Sudafrica', flag: '🇿🇦' },
+  { name: 'Marruecos', flag: '🇲🇦' }
+].sort((a, b) => b.name.length - a.name.length);
+
+const GENTILICIOS = [
+  // Estados Unidos
+  { name: 'estadounidenses', flag: '🇺🇸', g: 'n' },
+  { name: 'estadounidense',  flag: '🇺🇸', g: 'n' },
+  { name: 'norteamericanos', flag: '🇺🇸', g: 'm' },
+  { name: 'norteamericanas', flag: '🇺🇸', g: 'f' },
+  { name: 'norteamericano',  flag: '🇺🇸', g: 'm' },
+  { name: 'norteamericana',  flag: '🇺🇸', g: 'f' },
+  { name: 'gringos',         flag: '🇺🇸', g: 'm' },
+  { name: 'gringo',          flag: '🇺🇸', g: 'm' },
+  // Argentina
+  { name: 'argentinos', flag: '🇦🇷', g: 'm' },
+  { name: 'argentinas', flag: '🇦🇷', g: 'f' },
+  { name: 'argentino',  flag: '🇦🇷', g: 'm' },
+  { name: 'argentina',  flag: '🇦🇷', g: 'f' },
+  // España
+  { name: 'españoles', flag: '🇪🇸', g: 'm' },
+  { name: 'españolas', flag: '🇪🇸', g: 'f' },
+  { name: 'español',   flag: '🇪🇸', g: 'm' },
+  { name: 'española',  flag: '🇪🇸', g: 'f' },
+  // Chile
+  { name: 'chilenos', flag: '🇨🇱', g: 'm' },
+  { name: 'chilenas', flag: '🇨🇱', g: 'f' },
+  { name: 'chileno',  flag: '🇨🇱', g: 'm' },
+  { name: 'chilena',  flag: '🇨🇱', g: 'f' },
+  // Brasil
+  { name: 'brasileños', flag: '🇧🇷', g: 'm' },
+  { name: 'brasileñas', flag: '🇧🇷', g: 'f' },
+  { name: 'brasileño',  flag: '🇧🇷', g: 'm' },
+  { name: 'brasileña',  flag: '🇧🇷', g: 'f' },
+  { name: 'brasileros', flag: '🇧🇷', g: 'm' },
+  { name: 'brasileras', flag: '🇧🇷', g: 'f' },
+  { name: 'brasilero',  flag: '🇧🇷', g: 'm' },
+  { name: 'brasilera',  flag: '🇧🇷', g: 'f' },
+  // Colombia
+  { name: 'colombianos', flag: '🇨🇴', g: 'm' },
+  { name: 'colombianas', flag: '🇨🇴', g: 'f' },
+  { name: 'colombiano',  flag: '🇨🇴', g: 'm' },
+  { name: 'colombiana',  flag: '🇨🇴', g: 'f' },
+  // México
+  { name: 'mexicanos', flag: '🇲🇽', g: 'm' },
+  { name: 'mexicanas', flag: '🇲🇽', g: 'f' },
+  { name: 'mexicano',  flag: '🇲🇽', g: 'm' },
+  { name: 'mexicana',  flag: '🇲🇽', g: 'f' },
+  { name: 'mejicanos', flag: '🇲🇽', g: 'm' },
+  { name: 'mejicanas', flag: '🇲🇽', g: 'f' },
+  { name: 'mejicano',  flag: '🇲🇽', g: 'm' },
+  { name: 'mejicana',  flag: '🇲🇽', g: 'f' },
+  // Uruguay
+  { name: 'uruguayos', flag: '🇺🇾', g: 'm' },
+  { name: 'uruguayas', flag: '🇺🇾', g: 'f' },
+  { name: 'uruguayo',  flag: '🇺🇾', g: 'm' },
+  { name: 'uruguaya',  flag: '🇺🇾', g: 'f' },
+  // Paraguay
+  { name: 'paraguayos', flag: '🇵🇾', g: 'm' },
+  { name: 'paraguayas', flag: '🇵🇾', g: 'f' },
+  { name: 'paraguayo',  flag: '🇵🇾', g: 'm' },
+  { name: 'paraguaya',  flag: '🇵🇾', g: 'f' },
+  // Bolivia
+  { name: 'bolivianos', flag: '🇧🇴', g: 'm' },
+  { name: 'bolivianas', flag: '🇧🇴', g: 'f' },
+  { name: 'boliviano',  flag: '🇧🇴', g: 'm' },
+  { name: 'boliviana',  flag: '🇧🇴', g: 'f' },
+  // Perú
+  { name: 'peruanos', flag: '🇵🇪', g: 'm' },
+  { name: 'peruanas', flag: '🇵🇪', g: 'f' },
+  { name: 'peruano',  flag: '🇵🇪', g: 'm' },
+  { name: 'peruana',  flag: '🇵🇪', g: 'f' },
+  // Ecuador
+  { name: 'ecuatorianos', flag: '🇪🇨', g: 'm' },
+  { name: 'ecuatorianas', flag: '🇪🇨', g: 'f' },
+  { name: 'ecuatoriano',  flag: '🇪🇨', g: 'm' },
+  { name: 'ecuatoriana',  flag: '🇪🇨', g: 'f' },
+  // Venezuela
+  { name: 'venezolanos', flag: '🇻🇪', g: 'm' },
+  { name: 'venezolanas', flag: '🇻🇪', g: 'f' },
+  { name: 'venezolano',  flag: '🇻🇪', g: 'm' },
+  { name: 'venezolana',  flag: '🇻🇪', g: 'f' },
+  // Francia
+  { name: 'franceses', flag: '🇫🇷', g: 'm' },
+  { name: 'francesas', flag: '🇫🇷', g: 'f' },
+  { name: 'francés',   flag: '🇫🇷', g: 'm' },
+  { name: 'francesa',  flag: '🇫🇷', g: 'f' },
+  { name: 'frances',   flag: '🇫🇷', g: 'm' },
+  // Alemania
+  { name: 'alemanes', flag: '🇩🇪', g: 'm' },
+  { name: 'alemanas', flag: '🇩🇪', g: 'f' },
+  { name: 'alemán',   flag: '🇩🇪', g: 'm' },
+  { name: 'alemana',  flag: '🇩🇪', g: 'f' },
+  { name: 'aleman',   flag: '🇩🇪', g: 'm' },
+  // Italia
+  { name: 'italianos', flag: '🇮🇹', g: 'm' },
+  { name: 'italianas', flag: '🇮🇹', g: 'f' },
+  { name: 'italiano',  flag: '🇮🇹', g: 'm' },
+  { name: 'italiana',  flag: '🇮🇹', g: 'f' },
+  // Reino Unido / Inglaterra
+  { name: 'británicos', flag: '🇬🇧', g: 'm' },
+  { name: 'británicas', flag: '🇬🇧', g: 'f' },
+  { name: 'británico',  flag: '🇬🇧', g: 'm' },
+  { name: 'británica',  flag: '🇬🇧', g: 'f' },
+  { name: 'britanicos', flag: '🇬🇧', g: 'm' },
+  { name: 'britanico',  flag: '🇬🇧', g: 'm' },
+  { name: 'ingleses',   flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', g: 'm' },
+  { name: 'inglesas',   flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', g: 'f' },
+  { name: 'inglés',     flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', g: 'm' },
+  { name: 'inglesa',    flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', g: 'f' },
+  { name: 'ingles',     flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', g: 'm' },
+  // Rusia
+  { name: 'rusos', flag: '🇷🇺', g: 'm' },
+  { name: 'rusas', flag: '🇷🇺', g: 'f' },
+  { name: 'ruso',  flag: '🇷🇺', g: 'm' },
+  { name: 'rusa',  flag: '🇷🇺', g: 'f' },
+  // Japón
+  { name: 'japoneses', flag: '🇯🇵', g: 'm' },
+  { name: 'japonesas', flag: '🇯🇵', g: 'f' },
+  { name: 'japonés',   flag: '🇯🇵', g: 'm' },
+  { name: 'japonesa',  flag: '🇯🇵', g: 'f' },
+  { name: 'japones',   flag: '🇯🇵', g: 'm' },
+  // China
+  { name: 'chinos', flag: '🇨🇳', g: 'm' },
+  { name: 'chinas', flag: '🇨🇳', g: 'f' },
+  { name: 'chino',  flag: '🇨🇳', g: 'm' },
+  // Otros
+  { name: 'canadienses',  flag: '🇨🇦', g: 'n' },
+  { name: 'canadiense',   flag: '🇨🇦', g: 'n' },
+  { name: 'cubanos',      flag: '🇨🇺', g: 'm' },
+  { name: 'cubanas',      flag: '🇨🇺', g: 'f' },
+  { name: 'cubano',       flag: '🇨🇺', g: 'm' },
+  { name: 'cubana',       flag: '🇨🇺', g: 'f' },
+  { name: 'portugueses',  flag: '🇵🇹', g: 'm' },
+  { name: 'portuguesa',   flag: '🇵🇹', g: 'f' },
+  { name: 'portugués',    flag: '🇵🇹', g: 'm' },
+  { name: 'ucranianos',   flag: '🇺🇦', g: 'm' },
+  { name: 'ucranianas',   flag: '🇺🇦', g: 'f' },
+  { name: 'ucraniano',    flag: '🇺🇦', g: 'm' },
+  { name: 'ucraniana',    flag: '🇺🇦', g: 'f' },
+  { name: 'australianos', flag: '🇦🇺', g: 'm' },
+  { name: 'australianas', flag: '🇦🇺', g: 'f' },
+  { name: 'australiano',  flag: '🇦🇺', g: 'm' },
+  { name: 'australiana',  flag: '🇦🇺', g: 'f' }
+].sort((a, b) => b.name.length - a.name.length);
+
+const NUMBER_WORDS = [
+  { word: 'veinticuatro', num: '24' },
+  { word: 'veinticinco', num: '25' },
+  { word: 'veintiséis', num: '26' },
+  { word: 'veintiseis', num: '26' },
+  { word: 'veintisiete', num: '27' },
+  { word: 'veintiocho', num: '28' },
+  { word: 'veintinueve', num: '29' },
+  { word: 'dieciséis', num: '16' },
+  { word: 'dieciseis', num: '16' },
+  { word: 'diecisiete', num: '17' },
+  { word: 'dieciocho', num: '18' },
+  { word: 'diecinueve', num: '19' },
+  { word: 'veintidós', num: '22' },
+  { word: 'veintidos', num: '22' },
+  { word: 'veintitrés', num: '23' },
+  { word: 'veintitres', num: '23' },
+  { word: 'veintiuno', num: '21' },
+  { word: 'veintiuna', num: '21' },
+  { word: 'veintiún', num: '21' },
+  { word: 'veintiun', num: '21' },
+  { word: 'cincuenta', num: '50' },
+  { word: 'cuarenta', num: '40' },
+  { word: 'ochenta', num: '80' },
+  { word: 'noventa', num: '90' },
+  { word: 'setenta', num: '70' },
+  { word: 'sesenta', num: '60' },
+  { word: 'treinta', num: '30' },
+  { word: 'catorce', num: '14' },
+  { word: 'quince', num: '15' },
+  { word: 'cuatro', num: '4' },
+  { word: 'veinte', num: '20' },
+  { word: 'trece', num: '13' },
+  { word: 'siete', num: '7' },
+  { word: 'ocho', num: '8' },
+  { word: 'nueve', num: '9' },
+  { word: 'cinco', num: '5' },
+  { word: 'once', num: '11' },
+  { word: 'doce', num: '12' },
+  { word: 'cero', num: '0' },
+  { word: 'diez', num: '10' },
+  { word: 'seis', num: '6' },
+  { word: 'tres', num: '3' },
+  { word: 'cien', num: '100' },
+  { word: 'ciento', num: '100' },
+  { word: 'doscientos', num: '200' },
+  { word: 'doscientas', num: '200' },
+  { word: 'trescientos', num: '300' },
+  { word: 'trescientas', num: '300' },
+  { word: 'cuatrocientos', num: '400' },
+  { word: 'cuatrocientas', num: '400' },
+  { word: 'quinientos', num: '500' },
+  { word: 'quinientas', num: '500' },
+  { word: 'seiscientos', num: '600' },
+  { word: 'seiscientas', num: '600' },
+  { word: 'setecientos', num: '700' },
+  { word: 'setecientas', num: '700' },
+  { word: 'ochocientos', num: '800' },
+  { word: 'ochocientas', num: '800' },
+  { word: 'novecientos', num: '900' },
+  { word: 'novecientas', num: '900' },
+  { word: 'uno', num: '1' },
+  { word: 'una', num: '1' },
+  { word: 'un', num: '1' },
+  { word: 'dos', num: '2' },
+  { word: 'mil', num: '1000' }
+].sort((a, b) => b.word.length - a.word.length);
+
+const ANIMALS = [
+  { word: 'serpientes', emoji: '🐍' },
+  { word: 'serpiente', emoji: '🐍' },
+  { word: 'cocodrilos', emoji: '🐊' },
+  { word: 'cocodrilo', emoji: '🐊' },
+  { word: 'elefantes', emoji: '🐘' },
+  { word: 'elefante', emoji: '🐘' },
+  { word: 'tiburones', emoji: '🦈' },
+  { word: 'tiburón', emoji: '🦈' },
+  { word: 'tiburon', emoji: '🦈' },
+  { word: 'mariposas', emoji: '🦋' },
+  { word: 'mariposa', emoji: '🦋' },
+  { word: 'mosquitos', emoji: '🦟' },
+  { word: 'mosquito', emoji: '🦟' },
+  { word: 'pingüinos', emoji: '🐧' },
+  { word: 'pingüino', emoji: '🐧' },
+  { word: 'pinguinos', emoji: '🐧' },
+  { word: 'pinguino', emoji: '🐧' },
+  { word: 'tortugas', emoji: '🐢' },
+  { word: 'tortuga', emoji: '🐢' },
+  { word: 'caballos', emoji: '🐴' },
+  { word: 'caballo', emoji: '🐴' },
+  { word: 'delfines', emoji: '🐬' },
+  { word: 'delfín', emoji: '🐬' },
+  { word: 'delfin', emoji: '🐬' },
+  { word: 'ballenas', emoji: '🐋' },
+  { word: 'ballena', emoji: '🐋' },
+  { word: 'conejos', emoji: '🐰' },
+  { word: 'conejo', emoji: '🐰' },
+  { word: 'conejas', emoji: '🐰' },
+  { word: 'coneja', emoji: '🐰' },
+  { word: 'ratones', emoji: '🐭' },
+  { word: 'ratón', emoji: '🐭' },
+  { word: 'raton', emoji: '🐭' },
+  { word: 'jirafas', emoji: '🦒' },
+  { word: 'jirafa', emoji: '🦒' },
+  { word: 'águilas', emoji: '🦅' },
+  { word: 'águila', emoji: '🦅' },
+  { word: 'aguilas', emoji: '🦅' },
+  { word: 'aguila', emoji: '🦅' },
+  { word: 'chanchos', emoji: '🐷' },
+  { word: 'chancho', emoji: '🐷' },
+  { word: 'cerdos', emoji: '🐷' },
+  { word: 'cerdo', emoji: '🐷' },
+  { word: 'perritos', emoji: '🐶' },
+  { word: 'perrito', emoji: '🐶' },
+  { word: 'gatitos', emoji: '🐱' },
+  { word: 'gatito', emoji: '🐱' },
+  { word: 'pájaros', emoji: '🐦' },
+  { word: 'pájaro', emoji: '🐦' },
+  { word: 'pajaros', emoji: '🐦' },
+  { word: 'pajaro', emoji: '🐦' },
+  { word: 'ovejas', emoji: '🐑' },
+  { word: 'oveja', emoji: '🐑' },
+  { word: 'leones', emoji: '🦁' },
+  { word: 'león', emoji: '🦁' },
+  { word: 'leon', emoji: '🦁' },
+  { word: 'tigres', emoji: '🐯' },
+  { word: 'tigre', emoji: '🐯' },
+  { word: 'perros', emoji: '🐶' },
+  { word: 'perro', emoji: '🐶' },
+  { word: 'perras', emoji: '🐶' },
+  { word: 'perra', emoji: '🐶' },
+  { word: 'gatos', emoji: '🐱' },
+  { word: 'gato', emoji: '🐱' },
+  { word: 'gatas', emoji: '🐱' },
+  { word: 'gata', emoji: '🐱' },
+  { word: 'lobos', emoji: '🐺' },
+  { word: 'lobo', emoji: '🐺' },
+  { word: 'zorros', emoji: '🦊' },
+  { word: 'zorro', emoji: '🦊' },
+  { word: 'vacas', emoji: '🐮' },
+  { word: 'vaca', emoji: '🐮' },
+  { word: 'toros', emoji: '🐮' },
+  { word: 'toro', emoji: '🐮' },
+  { word: 'monos', emoji: '🐵' },
+  { word: 'mono', emoji: '🐵' },
+  { word: 'patos', emoji: '🦆' },
+  { word: 'pato', emoji: '🦆' },
+  { word: 'osos', emoji: '🐻' },
+  { word: 'oso', emoji: '🐻' },
+  { word: 'peces', emoji: '🐟' },
+  { word: 'pez', emoji: '🐟' },
+  { word: 'abejas', emoji: '🐝' },
+  { word: 'abeja', emoji: '🐝' }
+].sort((a, b) => b.word.length - a.word.length);
+
+const TRANSPORTS = [
+  { word: 'helicópteros', emoji: '🚁' },
+  { word: 'helicóptero', emoji: '🚁' },
+  { word: 'helicopteros', emoji: '🚁' },
+  { word: 'helicoptero', emoji: '🚁' },
+  { word: 'motocicletas', emoji: '🏍️' },
+  { word: 'motocicleta', emoji: '🏍️' },
+  { word: 'automóviles', emoji: '🚗' },
+  { word: 'automóvil', emoji: '🚗' },
+  { word: 'automoviles', emoji: '🚗' },
+  { word: 'automovil', emoji: '🚗' },
+  { word: 'ambulancias', emoji: '🚑' },
+  { word: 'ambulancia', emoji: '🚑' },
+  { word: 'patrulleros', emoji: '🚓' },
+  { word: 'patrullero', emoji: '🚓' },
+  { word: 'patrullas', emoji: '🚓' },
+  { word: 'patrulla', emoji: '🚓' },
+  { word: 'camionetas', emoji: '🛻' },
+  { word: 'camioneta', emoji: '🛻' },
+  { word: 'bicicletas', emoji: '🚲' },
+  { word: 'bicicleta', emoji: '🚲' },
+  { word: 'autobuses', emoji: '🚌' },
+  { word: 'autobús', emoji: '🚌' },
+  { word: 'autobus', emoji: '🚌' },
+  { word: 'colectivos', emoji: '🚌' },
+  { word: 'colectivo', emoji: '🚌' },
+  { word: 'camiones', emoji: '🚛' },
+  { word: 'camión', emoji: '🚛' },
+  { word: 'camion', emoji: '🚛' },
+  { word: 'aviones', emoji: '✈️' },
+  { word: 'avión', emoji: '✈️' },
+  { word: 'avion', emoji: '✈️' },
+  { word: 'lanchas', emoji: '🚤' },
+  { word: 'lancha', emoji: '🚤' },
+  { word: 'cohetes', emoji: '🚀' },
+  { word: 'cohete', emoji: '🚀' },
+  { word: 'veleros', emoji: '⛵' },
+  { word: 'velero', emoji: '⛵' },
+  { word: 'buques', emoji: '🚢' },
+  { word: 'buque', emoji: '🚢' },
+  { word: 'barcos', emoji: '🚢' },
+  { word: 'barco', emoji: '🚢' },
+  { word: 'trenes', emoji: '🚆' },
+  { word: 'tren', emoji: '🚆' },
+  { word: 'subtes', emoji: '🚇' },
+  { word: 'subte', emoji: '🚇' },
+  { word: 'metros', emoji: '🚇' },
+  { word: 'metro', emoji: '🚇' },
+  { word: 'bondis', emoji: '🚌' },
+  { word: 'bondi', emoji: '🚌' },
+  { word: 'micros', emoji: '🚌' },
+  { word: 'micro', emoji: '🚌' },
+  { word: 'coches', emoji: '🚗' },
+  { word: 'coche', emoji: '🚗' },
+  { word: 'carros', emoji: '🚗' },
+  { word: 'carro', emoji: '🚗' },
+  { word: 'botes', emoji: '⛵' },
+  { word: 'bote', emoji: '⛵' },
+  { word: 'motos', emoji: '🏍️' },
+  { word: 'moto', emoji: '🏍️' },
+  { word: 'bicis', emoji: '🚲' },
+  { word: 'bici', emoji: '🚲' },
+  { word: 'taxis', emoji: '🚕' },
+  { word: 'taxi', emoji: '🚕' },
+  { word: 'autos', emoji: '🚗' },
+  { word: 'auto', emoji: '🚗' }
+].sort((a, b) => b.word.length - a.word.length);
+
+
+/* ================================================================
+   NUEVOS DICCIONARIOS DE TRANSFORMACIÓN
+================================================================ */
+
+// CIUDADES Y CAPITALES
+const CITIES = [
+  { city: 'Ciudad de México', emoji: '🏙️🇲🇽' },
+  { city: 'Ciudad de Mexico', emoji: '🏙️🇲🇽' },
+  { city: 'Santiago de Chile', emoji: '🏙️🇨🇱' },
+  { city: 'Río de Janeiro', emoji: '🏖️🇧🇷' },
+  { city: 'Rio de Janeiro', emoji: '🏖️🇧🇷' },
+  { city: 'Buenos Aires', emoji: '🏙️🇦🇷' },
+  { city: 'Nueva York', emoji: '🗽🇺🇸' },
+  { city: 'New York', emoji: '🗽🇺🇸' },
+  { city: 'Washington', emoji: '🏛️🇺🇸' },
+  { city: 'Los Ángeles', emoji: '🌟🇺🇸' },
+  { city: 'Los Angeles', emoji: '🌟🇺🇸' },
+  { city: 'Montevideo', emoji: '🏙️🇺🇾' },
+  { city: 'São Paulo', emoji: '🏙️🇧🇷' },
+  { city: 'Sao Paulo', emoji: '🏙️🇧🇷' },
+  { city: 'Barcelona', emoji: '🏙️🇪🇸' },
+  { city: 'Asunción', emoji: '🏙️🇵🇾' },
+  { city: 'Asuncion', emoji: '🏙️🇵🇾' },
+  { city: 'Brasilia', emoji: '🏙️🇧🇷' },
+  { city: 'Santiago', emoji: '🏙️🇨🇱' },
+  { city: 'Medellín', emoji: '🏙️🇨🇴' },
+  { city: 'Medellin', emoji: '🏙️🇨🇴' },
+  { city: 'Rosario', emoji: '🏙️🇦🇷' },
+  { city: 'Córdoba', emoji: '🏙️🇦🇷' },
+  { city: 'Cordoba', emoji: '🏙️🇦🇷' },
+  { city: 'Caracas', emoji: '🏙️🇻🇪' },
+  { city: 'Londres', emoji: '🏙️🇬🇧' },
+  { city: 'London', emoji: '🏙️🇬🇧' },
+  { city: 'Berlín', emoji: '🏙️🇩🇪' },
+  { city: 'Berlin', emoji: '🏙️🇩🇪' },
+  { city: 'Bogotá', emoji: '🏙️🇨🇴' },
+  { city: 'Bogota', emoji: '🏙️🇨🇴' },
+  { city: 'Madrid', emoji: '🗼🇪🇸' },
+  { city: 'La Paz', emoji: '🏙️🇧🇴' },
+  { city: 'París', emoji: '🗼🇫🇷' },
+  { city: 'Paris', emoji: '🗼🇫🇷' },
+  { city: 'Tokio', emoji: '🏙️🇯🇵' },
+  { city: 'Tokyo', emoji: '🏙️🇯🇵' },
+  { city: 'Miami', emoji: '🌴🇺🇸' },
+  { city: 'Quito', emoji: '🏙️🇪🇨' },
+  { city: 'Roma', emoji: '🏛️🇮🇹' },
+  { city: 'Lima', emoji: '🏙️🇵🇪' }
+].sort((a, b) => b.city.length - a.city.length);
+
+// ABREVIACIONES INTELIGENTES (INCLUYE ORDINALES 1ro, 2do, 3ro, etc.)
+const ABBREVIATIONS = [
+  // Palabras largas frecuentes
+  { word: 'aproximadamente', short: 'aprox' },
+  { word: 'especialmente',   short: 'esp.' },
+  { word: 'internacional',   short: 'intl.' },
+  { word: 'informaciones',   short: 'infos' },
+  { word: 'información',     short: 'info' },
+  { word: 'informacion',     short: 'info' },
+  { word: 'presidente',      short: 'pte.' },
+  { word: 'presidenta',      short: 'pta.' },
+  { word: 'ministerio',      short: 'min.' },
+  { word: 'secretaría',      short: 'secr.' },
+  { word: 'secretaria',      short: 'secr.' },
+  { word: 'secretario',      short: 'secr.' },
+  { word: 'diputados',       short: 'dips.' },
+  { word: 'diputado',        short: 'dip.' },
+  { word: 'senadores',       short: 'sens.' },
+  { word: 'senador',         short: 'sen.' },
+  { word: 'gobierno',        short: 'gob.' },
+  { word: 'también',         short: 'tmb' },
+  { word: 'tambien',         short: 'tmb' },
+  { word: 'tampoco',         short: 'tmp' },
+  { word: 'después',         short: 'dsp' },
+  { word: 'despues',         short: 'dsp' },
+  { word: 'siempre',         short: 'smp' },
+  { word: 'nosotros',        short: 'nstrs' },
+  { word: 'ustedes',         short: 'uds.' },
+  { word: 'todavía',         short: 'tdv' },
+  { word: 'todavia',         short: 'tdv' },
+  { word: 'mensajes',        short: 'msjs' },
+  { word: 'mensaje',         short: 'msj' },
+  { word: 'por favor',       short: 'xfa' },
+  { word: 'gracias',         short: 'grx' },
+  { word: 'artículo',        short: 'art.' },
+  { word: 'articulo',        short: 'art.' },
+  { word: 'capítulo',        short: 'cap.' },
+  { word: 'capitulo',        short: 'cap.' },
+  { word: 'página',          short: 'pág.' },
+  { word: 'pagina',          short: 'pág.' },
+  { word: 'número',          short: 'nro.' },
+  { word: 'numero',          short: 'nro.' },
+  { word: 'teléfono',        short: 'tel.' },
+  { word: 'telefono',        short: 'tel.' },
+  { word: 'ejemplo',         short: 'ej.' },
+  { word: 'porque',          short: 'xq' },
+  { word: 'cuando',          short: 'cdo' },
+  { word: 'muchos',          short: 'mchs' },
+  { word: 'mucho',           short: 'mch' },
+  { word: 'pocos',           short: 'pcs' },
+  { word: 'poco',            short: 'pc' },
+  { word: 'todos',           short: 'tds' },
+  { word: 'todo',            short: 'td' },
+  { word: 'para',            short: 'p/' },
+  { word: 'pero',            short: 'pro' },
+  { word: 'con',             short: 'c/' },
+  { word: 'que',             short: 'q' },
+
+  // NÚMEROS ORDINALES (Primero, segundo, tercero -> 1ro, 2do, 3ro, etc.)
+  { word: 'séptimos', short: '7mos' },
+  { word: 'septimos', short: '7mos' },
+  { word: 'séptimas', short: '7mas' },
+  { word: 'septimas', short: '7mas' },
+  { word: 'primeros', short: '1ros' },
+  { word: 'primeras', short: '1ras' },
+  { word: 'segundos', short: '2dos' },
+  { word: 'segundas', short: '2das' },
+  { word: 'terceros', short: '3ros' },
+  { word: 'terceras', short: '3ras' },
+  { word: 'cuartos',  short: '4tos' },
+  { word: 'cuartas',  short: '4tas' },
+  { word: 'quintos',  short: '5tos' },
+  { word: 'quintas',  short: '5tas' },
+  { word: 'sextos',   short: '6tos' },
+  { word: 'sextas',   short: '6tas' },
+  { word: 'octavos',  short: '8vos' },
+  { word: 'octavas',  short: '8vas' },
+  { word: 'novenos',  short: '9nos' },
+  { word: 'novenas',  short: '9nas' },
+  { word: 'décimos',  short: '10mos' },
+  { word: 'decimos',  short: '10mos' },
+  { word: 'décimas',  short: '10mas' },
+  { word: 'decimas',  short: '10mas' },
+  { word: 'séptimo',  short: '7mo' },
+  { word: 'septimo',  short: '7mo' },
+  { word: 'séptima',  short: '7ma' },
+  { word: 'septima',  short: '7ma' },
+  { word: 'primero',  short: '1ro' },
+  { word: 'primera',  short: '1ra' },
+  { word: 'primer',   short: '1er' },
+  { word: 'segundo',  short: '2do' },
+  { word: 'segunda',  short: '2da' },
+  { word: 'tercero',  short: '3ro' },
+  { word: 'tercera',  short: '3ra' },
+  { word: 'tercer',   short: '3er' },
+  { word: 'cuarto',   short: '4to' },
+  { word: 'cuarta',   short: '4ta' },
+  { word: 'quinto',   short: '5to' },
+  { word: 'quinta',   short: '5ta' },
+  { word: 'sexto',    short: '6to' },
+  { word: 'sexta',    short: '6ta' },
+  { word: 'octavo',   short: '8vo' },
+  { word: 'octava',   short: '8va' },
+  { word: 'noveno',   short: '9no' },
+  { word: 'novena',   short: '9na' },
+  { word: 'décimo',   short: '10mo' },
+  { word: 'decimo',   short: '10mo' },
+  { word: 'décima',   short: '10ma' },
+  { word: 'decima',   short: '10ma' }
+].sort((a, b) => b.word.length - a.word.length);
+
+// PORCENTAJES Y FRACCIONES ESCRITAS
+const PERCENTS = [
+  { phrase: 'setenta y cinco por ciento', rep: '75%' },
+  { phrase: 'cincuenta por ciento',       rep: '50%' },
+  { phrase: 'veinticinco por ciento',     rep: '25%' },
+  { phrase: 'cuarenta por ciento',        rep: '40%' },
+  { phrase: 'sesenta por ciento',         rep: '60%' },
+  { phrase: 'setenta por ciento',         rep: '70%' },
+  { phrase: 'ochenta por ciento',         rep: '80%' },
+  { phrase: 'noventa por ciento',         rep: '90%' },
+  { phrase: 'treinta por ciento',         rep: '30%' },
+  { phrase: 'veinte por ciento',          rep: '20%' },
+  { phrase: 'ciento por ciento',          rep: '100%' },
+  { phrase: 'cien por ciento',            rep: '100%' },
+  { phrase: 'diez por ciento',            rep: '10%' },
+  { phrase: 'tres cuartos',               rep: '3/4' },
+  { phrase: 'dos tercios',                rep: '2/3' },
+  { phrase: 'un cuarto',                  rep: '1/4' },
+  { phrase: 'un tercio',                  rep: '1/3' },
+  { phrase: 'la mitad',                   rep: '1/2' },
+  { phrase: 'por ciento',                 rep: '%' }
+].sort((a, b) => b.phrase.length - a.phrase.length);
+
+// MONEDAS ESCRITAS
+const CURRENCIES = [
+  { word: 'dólares estadounidenses', symbol: '💵' },
+  { word: 'dolares estadounidenses', symbol: '💵' },
+  { word: 'dólares', symbol: '💵' },
+  { word: 'dolares', symbol: '💵' },
+  { word: 'dólar', symbol: '💵' },
+  { word: 'dolar', symbol: '💵' },
+  { word: 'pesos argentinos', symbol: '$' },
+  { word: 'pesos', symbol: '$' },
+  { word: 'peso', symbol: '$' },
+  { word: 'euros', symbol: '€' },
+  { word: 'euro', symbol: '€' },
+  { word: 'libras esterlinas', symbol: '£' },
+  { word: 'libras', symbol: '£' },
+  { word: 'libra', symbol: '£' },
+  { word: 'yenes', symbol: '¥' },
+  { word: 'yen', symbol: '¥' },
+  { word: 'reales', symbol: 'R$' },
+  { word: 'real', symbol: 'R$' }
+].sort((a, b) => b.word.length - a.word.length);
+
+// UNIDADES DE MEDIDA
+const UNITS = [
+  { word: 'kilómetros por hora', sym: 'km/h' },
+  { word: 'kilometros por hora', sym: 'km/h' },
+  { word: 'grados centígrados', sym: '°C' },
+  { word: 'grados centigrados', sym: '°C' },
+  { word: 'grados celsius', sym: '°C' },
+  { word: 'grados fahrenheit', sym: '°F' },
+  { word: 'kilómetros', sym: 'km' },
+  { word: 'kilometros', sym: 'km' },
+  { word: 'kilómetro', sym: 'km' },
+  { word: 'kilometro', sym: 'km' },
+  { word: 'centímetros', sym: 'cm' },
+  { word: 'centimetros', sym: 'cm' },
+  { word: 'centímetro', sym: 'cm' },
+  { word: 'centimetro', sym: 'cm' },
+  { word: 'milímetros', sym: 'mm' },
+  { word: 'milimetros', sym: 'mm' },
+  { word: 'milímetro', sym: 'mm' },
+  { word: 'milimetro', sym: 'mm' },
+  { word: 'kilogramos', sym: 'kg' },
+  { word: 'kilogramo', sym: 'kg' },
+  { word: 'toneladas', sym: 't' },
+  { word: 'tonelada', sym: 't' },
+  { word: 'hectáreas', sym: 'ha' },
+  { word: 'hectareas', sym: 'ha' },
+  { word: 'hectárea', sym: 'ha' },
+  { word: 'hectarea', sym: 'ha' },
+  { word: 'mililitros', sym: 'ml' },
+  { word: 'mililitro', sym: 'ml' },
+  { word: 'gigabytes', sym: 'GB' },
+  { word: 'megabytes', sym: 'MB' },
+  { word: 'terabytes', sym: 'TB' },
+  { word: 'segundos', sym: 'seg' },
+  { word: 'minutos', sym: 'min' },
+  { word: 'minuto', sym: 'min' },
+  { word: 'litros', sym: 'L' },
+  { word: 'litro', sym: 'L' },
+  { word: 'gramos', sym: 'g' },
+  { word: 'gramo', sym: 'g' },
+  { word: 'horas', sym: 'hs' },
+  { word: 'hora', sym: 'h' },
+  { word: 'kilos', sym: 'kg' },
+  { word: 'kilo', sym: 'kg' },
+  { word: 'metros', sym: 'm' },
+  { word: 'metro', sym: 'm' }
+].sort((a, b) => b.word.length - a.word.length);
+
+const MONTHS_MAP = {
+  'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6,
+  'julio': 7, 'agosto': 8, 'septiembre': 9, 'setiembre': 9, 'octubre': 10,
+  'noviembre': 11, 'diciembre': 12
+};
+
+
+function escapeRegExp(str) {
+  return str.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+function makeWordRegex(word) {
+  const esc = escapeRegExp(word);
+  const startBound = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ]/.test(word) ? '(?<=^|[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ])' : '';
+  const endBound   = /[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ]$/.test(word) ? '(?=[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ]|$)' : '';
+  return new RegExp(startBound + '(' + esc + ')' + endBound, 'gi');
+}
+
+/* ================================================================
+   PERSISTENCIA (localStorage)
+================================================================ */
+function saveSettings() {
+  try {
+    localStorage.setItem('xadapter_settings', JSON.stringify(state.settings));
+    localStorage.setItem('xadapter_custom_rules', JSON.stringify(state.customRules || []));
+    localStorage.setItem('xadapter_hilo_settings', JSON.stringify(state.hiloSettings || {}));
+    localStorage.setItem('xadapter_hilo_breaks', JSON.stringify(state.hiloManualBreaks || []));
+  } catch (e) { /* ignore */ }
+}
+
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem('xadapter_settings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(state.settings, parsed);
+    }
+    const savedCustom = localStorage.getItem('xadapter_custom_rules');
+    if (savedCustom) {
+      state.customRules = JSON.parse(savedCustom);
+    } else {
+      state.customRules = [];
+    }
+    const savedHilo = localStorage.getItem('xadapter_hilo_settings');
+    if (savedHilo) {
+      const parsedHilo = JSON.parse(savedHilo);
+      Object.assign(state.hiloSettings, parsedHilo);
+    }
+    const savedBreaks = localStorage.getItem('xadapter_hilo_breaks');
+    if (savedBreaks) {
+      state.hiloManualBreaks = JSON.parse(savedBreaks);
+    } else {
+      state.hiloManualBreaks = [];
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/* ================================================================
+   CÁLCULO OFICIAL DE CARACTERES EN X (TWITTER-TEXT SPEC)
+   - URLs cuentan como 23 caracteres fijos (t.co)
+   - Emojis (banderas, secuencias ZWJ, modificadores) cuentan como 2 chars
+   - Caracteres estándar cuentan como 1 char
+================================================================ */
+const EMOJI_REGEX = /\p{RI}{2}|[0-9#*]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:[\u{FE0E}\u{FE0F}]|[\u{1F3FB}-\u{1F3FF}])?(?:\u200D\p{Extended_Pictographic}(?:[\u{FE0E}\u{FE0F}]|[\u{1F3FB}-\u{1F3FF}])?)*/gu;
+
+function computeTwitterLength(text, countUrlsAs23 = true) {
+  if (!text) return 0;
+  let t = text;
+  if (countUrlsAs23) {
+    const urlRegex = /https?:\/\/[^\s]+/gi;
+    t = t.replace(urlRegex, () => ' '.repeat(23));
+  }
+  const normalized = t.replace(EMOJI_REGEX, 'XX');
+  return normalized.length;
+}
+
+/* ================================================================
+   TRANSFORMACIONES & SEGUIMIENTO (DIFF / AUDIT)
+================================================================ */
+function transformWithTracking(rawText, settings) {
+  const modifications = [];
+
+  // 1. Corrección ortográfica nativa
+  if (inputText) {
+    inputText.setAttribute('spellcheck', settings.spellCheck ? 'true' : 'false');
+  }
+  if (settings.spellCheck && rawText && rawText.trim() !== '') {
+    modifications.push({
+      category: '🔤 Ortografía',
+      line: 'Editor',
+      col: '-',
+      saved: 0,
+      desc: 'Corrección ortográfica activa: el navegador subraya palabras erróneas en el campo de texto',
+      htmlPreview: 'Spellcheck activo en campo de entrada'
+    });
+  }
+
+  if (!rawText || rawText.trim() === '') {
+    return { text: rawText, modifications, totalSaved: 0, effectiveXLen: 0 };
+  }
+
+  // Pre-proceso global: Eliminar palabras repetidas si está activo
+  let normalized = rawText.replace(/\r\n/g, '\n');
+  if (settings.removeDuplicates) {
+    const dupRegex = /\b([a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)\s+\1\b/gi;
+    let dupMatch;
+    while ((dupMatch = dupRegex.exec(normalized)) !== null) {
+      const full = dupMatch[0];
+      const single = dupMatch[1];
+      const saved = full.length - single.length;
+      modifications.push({
+        category: '🔁 Repetición',
+        line: 'Global',
+        col: '-',
+        saved: saved,
+        desc: `Palabra duplicada eliminada: "${full}" ➔ "${single}"`,
+        htmlPreview: `<del>${escapeHtml(full)}</del> ➔ ${escapeHtml(single)}`
+      });
+    }
+    normalized = normalized.replace(/\b([a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)\s+\1\b/gi, '$1');
+  }
+
+  let lines = normalized.split('\n');
+  let newLines = [];
+
+  lines.forEach((origLine, idx) => {
+    const lineNum = idx + 1;
+    let line = origLine;
+
+    // Proteger URLs, Menciones y Hashtags
+    const protectedTokens = [];
+    line = line.replace(/(https?:\/\/[^\s]+|@[a-zA-Z0-9_]+|#[a-zA-Z0-9_]+)/g, (match) => {
+      const token = `___PROTECTED_${protectedTokens.length}___`;
+      protectedTokens.push({ token, original: match });
+      return token;
+    });
+
+    // 0. Reemplazos personalizados del usuario (al comienzo)
+    if (settings.customRules && state.customRules && state.customRules.length > 0) {
+      const activeRules = state.customRules
+        .filter(r => r && r.find && r.find.trim().length > 0)
+        .sort((a, b) => b.find.trim().length - a.find.trim().length);
+
+      activeRules.forEach(r => {
+        const findText = r.find.trim();
+        const repText  = r.replace !== undefined ? r.replace : '';
+        const regex    = makeWordRegex(findText);
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchWord = match[1];
+          const saved = matchWord.length - computeTwitterLength(repText);
+          modifications.push({
+            category: '✏️ Personalizado',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchWord}" ➔ ${repText}`,
+            htmlPreview: `${escapeHtml(matchWord)} ➔ ${escapeHtml(repText || '∅')}`
+          });
+        }
+        line = line.replace(regex, repText);
+      });
+    }
+
+    // Contracciones gramaticales oficiales del español (de el -> del, a el -> al)
+    if (settings.grammarContractions) {
+      // 1. de el -> del
+      const deElRegex = /(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(de\s+el)(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)/gi;
+      let matchDeEl;
+      while ((matchDeEl = deElRegex.exec(line)) !== null) {
+        const matchText = matchDeEl[1];
+        let rep = 'del';
+        if (matchText === matchText.toUpperCase()) {
+          rep = 'DEL';
+        } else if (/^[A-Z]/.test(matchText)) {
+          rep = 'Del';
+        }
+        const saved = matchText.length - rep.length;
+        modifications.push({
+          category: '🔗 Contracciones',
+          line: lineNum,
+          col: matchDeEl.index + 1,
+          saved: saved,
+          desc: `"${matchText}" ➔ ${rep}`,
+          htmlPreview: `${escapeHtml(matchText)} ➔ ${rep}`
+        });
+      }
+      line = line.replace(deElRegex, (m) => {
+        if (m === m.toUpperCase()) return 'DEL';
+        if (/^[A-Z]/.test(m)) return 'Del';
+        return 'del';
+      });
+
+      // 2. a el -> al
+      const aElRegex = /(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(a\s+el)(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)/gi;
+      let matchAEl;
+      while ((matchAEl = aElRegex.exec(line)) !== null) {
+        const matchText = matchAEl[1];
+        let rep = 'al';
+        if (matchText === matchText.toUpperCase()) {
+          rep = 'AL';
+        } else if (/^[A-Z]/.test(matchText)) {
+          rep = 'Al';
+        }
+        const saved = matchText.length - rep.length;
+        modifications.push({
+          category: '🔗 Contracciones',
+          line: lineNum,
+          col: matchAEl.index + 1,
+          saved: saved,
+          desc: `"${matchText}" ➔ ${rep}`,
+          htmlPreview: `${escapeHtml(matchText)} ➔ ${rep}`
+        });
+      }
+      line = line.replace(aElRegex, (m) => {
+        if (m === m.toUpperCase()) return 'AL';
+        if (/^[A-Z]/.test(m)) return 'Al';
+        return 'al';
+      });
+    }
+
+    // A. Minúsculas inteligentes (ALL CAPS sostenidas de 3+ letras)
+    if (settings.smartLower) {
+      const capsRegex = /\b([A-ZÁÉÍÓÚÑÜ]{3,})\b/g;
+      let capsMatch;
+      let hadCaps = false;
+      while ((capsMatch = capsRegex.exec(line)) !== null) {
+        hadCaps = true;
+      }
+      if (hadCaps) {
+        line = line.replace(/\b([A-ZÁÉÍÓÚÑÜ]{3,})\b/g, (m, word, offset) => {
+          const isStart = offset === 0 || /([\.!?]\s*)$/.test(line.slice(0, offset));
+          const lower = word.toLowerCase();
+          return isStart ? lower.charAt(0).toUpperCase() + lower.slice(1) : lower;
+        });
+        modifications.push({
+          category: '⬇️ Minúsculas',
+          line: lineNum,
+          col: 1,
+          saved: 0,
+          desc: 'Mayúsculas sostenidas convertidas a minúsculas',
+          htmlPreview: 'MAYÚSCULAS ➔ minúsculas'
+        });
+      }
+    }
+
+    // B. Comillas dobles a simples
+    if (settings.convertQuotes) {
+      if (/[\"“”]/.test(line)) {
+        const quoteCount = (line.match(/[\"“”]/g) || []).length;
+        line = line.replace(/[“"]/g, "'").replace(/[”"]/g, "'");
+        modifications.push({
+          category: '💬 Comillas',
+          line: lineNum,
+          col: 1,
+          saved: 0,
+          desc: `${quoteCount} comilla(s) dobles convertidas a simples`,
+          htmlPreview: '“comillas” ➔ \'comillas\''
+        });
+      }
+    }
+
+    // C. Espacios al final de línea
+    if (settings.trimSpaces) {
+      const trailMatch = line.match(/[ \t]+$/);
+      if (trailMatch) {
+        const count = trailMatch[0].length;
+        const colPos = line.length - count + 1;
+        const before = line.slice(Math.max(0, line.length - count - 8), line.length - count);
+        modifications.push({
+          category: '🧹 Espacio al final',
+          line: lineNum,
+          col: colPos,
+          saved: count,
+          desc: `${count} espacio(s) invisibles al final del renglón`,
+          htmlPreview: `${escapeHtml(before)}<del>[${count} esp. final]</del>`
+        });
+        line = line.slice(0, line.length - count);
+      }
+    }
+
+    // D. Punto final de línea / párrafo
+    if (settings.removePeriods) {
+      const periodMatch = line.match(/(?<!\.)\.(?!\.)$/);
+      if (periodMatch) {
+        const colPos = line.length;
+        const before = line.slice(Math.max(0, line.length - 1 - 10), line.length - 1);
+        modifications.push({
+          category: '🔵 Punto final',
+          line: lineNum,
+          col: colPos,
+          saved: 1,
+          desc: 'Punto final removido del renglón',
+          htmlPreview: `${escapeHtml(before)}<del>.</del>`
+        });
+        line = line.slice(0, line.length - 1);
+
+        if (settings.trimSpaces) {
+          const trailAfterPeriod = line.match(/[ \t]+$/);
+          if (trailAfterPeriod) {
+            const count = trailAfterPeriod[0].length;
+            modifications.push({
+              category: '🧹 Espacio al final',
+              line: lineNum,
+              col: line.length - count + 1,
+              saved: count,
+              desc: `${count} espacio(s) antes del punto`,
+              htmlPreview: `<del>[${count} esp.]</del>`
+            });
+            line = line.slice(0, line.length - count);
+          }
+        }
+      }
+    }
+
+    // E. Extraer comas (,)
+    if (settings.removeCommas) {
+      const commaCount = (line.match(/,/g) || []).length;
+      if (commaCount > 0) {
+        const firstIdx = line.indexOf(',');
+        const before = line.slice(Math.max(0, firstIdx - 6), firstIdx);
+        modifications.push({
+          category: '🧹 Comas',
+          line: lineNum,
+          col: firstIdx + 1,
+          saved: commaCount,
+          desc: `${commaCount} coma(s) eliminada(s) del renglón`,
+          htmlPreview: `${escapeHtml(before)}<del>[${commaCount}× ,]</del>`
+        });
+        line = line.replace(/,/g, '');
+        line = line.replace(/[ \t]{2,}/g, ' ');
+      }
+    }
+
+    // F. Espacios al inicio de línea
+    if (settings.trimSpaces) {
+      const leadMatch = line.match(/^[ \t]+/);
+      if (leadMatch) {
+        const count = leadMatch[0].length;
+        const after = line.slice(count, Math.min(line.length, count + 12));
+        modifications.push({
+          category: '🧹 Espacio al inicio',
+          line: lineNum,
+          col: 1,
+          saved: count,
+          desc: `${count} espacio(s) al inicio del renglón`,
+          htmlPreview: `<del>[${count} esp.]</del>${escapeHtml(after)}`
+        });
+        line = line.slice(count);
+      }
+    }
+
+    // G. Espacios dobles internos
+    if (settings.trimSpaces) {
+      let multiMatch;
+      const multiRegex = /[ \t]{2,}/g;
+      while ((multiMatch = multiRegex.exec(line)) !== null) {
+        const matchLen = multiMatch[0].length;
+        const saved = matchLen - 1;
+        const colPos = multiMatch.index + 1;
+        const before = line.slice(Math.max(0, multiMatch.index - 8), multiMatch.index);
+        const after  = line.slice(multiMatch.index + matchLen, Math.min(line.length, multiMatch.index + matchLen + 8));
+        modifications.push({
+          category: '🧹 Espacios dobles',
+          line: lineNum,
+          col: colPos,
+          saved: saved,
+          desc: `${matchLen} espacios seguidos reducidos a 1`,
+          htmlPreview: `${escapeHtml(before)}<del>[${matchLen} esp.]</del>${escapeHtml(after)}`
+        });
+      }
+      line = line.replace(/[ \t]{2,}/g, ' ');
+    }
+
+    // H. Espacios antes de signos de puntuación
+    if (settings.trimSpaces) {
+      let punctMatch;
+      const punctRegex = / +([,\.;:!?])/g;
+      while ((punctMatch = punctRegex.exec(line)) !== null) {
+        const matchLen = punctMatch[0].length;
+        const saved = matchLen - 1;
+        const punct = punctMatch[1];
+        const colPos = punctMatch.index + 1;
+        const before = line.slice(Math.max(0, punctMatch.index - 6), punctMatch.index);
+        modifications.push({
+          category: '🧹 Espacio antes de signo',
+          line: lineNum,
+          col: colPos,
+          saved: saved,
+          desc: `Espacio innecesario antes de '${punct}'`,
+          htmlPreview: `${escapeHtml(before)}<del>[esp]</del>${escapeHtml(punct)}`
+        });
+      }
+      line = line.replace(/ +([,\.;:!?])/g, '$1');
+    }
+
+    // I. Fechas escritas a formato corto (ej: 15 de octubre de 2024 -> 15/10/24)
+    if (settings.shortDates) {
+      const dateRegex = /\b(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)(?:\s+(?:del?|de)\s+(\d{2,4}))?\b/gi;
+      let dateMatch;
+      while ((dateMatch = dateRegex.exec(line)) !== null) {
+        const fullMatch = dateMatch[0];
+        const day = dateMatch[1];
+        const mStr = dateMatch[2].toLowerCase();
+        const mNum = MONTHS_MAP[mStr] || 1;
+        const year = dateMatch[3];
+        let rep = '';
+        if (year) {
+          const shortYear = year.length === 4 ? year.slice(2) : year;
+          rep = `${day}/${mNum}/${shortYear}`;
+        } else {
+          rep = `${day}/${mNum}`;
+        }
+        const saved = fullMatch.length - rep.length;
+        if (saved > 0) {
+          modifications.push({
+            category: '📅 Fecha corta',
+            line: lineNum,
+            col: dateMatch.index + 1,
+            saved: saved,
+            desc: `"${fullMatch}" ➔ ${rep}`,
+            htmlPreview: `${escapeHtml(fullMatch)} ➔ ${rep}`
+          });
+        }
+      }
+      line = line.replace(dateRegex, (m, day, mStr, year) => {
+        const mNum = MONTHS_MAP[mStr.toLowerCase()] || 1;
+        if (year) {
+          const shortYear = year.length === 4 ? year.slice(2) : year;
+          return `${day}/${mNum}/${shortYear}`;
+        }
+        return `${day}/${mNum}`;
+      });
+    }
+
+    // J. Porcentajes y proporciones escritas a números y %
+    if (settings.replacePercent) {
+      PERCENTS.forEach(p => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(p.phrase) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchPhrase = match[1];
+          const saved = matchPhrase.length - p.rep.length;
+          modifications.push({
+            category: '📊 Porcentaje',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchPhrase}" ➔ ${p.rep}`,
+            htmlPreview: `${escapeHtml(matchPhrase)} ➔ ${p.rep}`
+          });
+        }
+        line = line.replace(regex, p.rep);
+      });
+
+      const numPctRegex = /(\d+)\s+por\s+ciento/gi;
+      let npMatch;
+      while ((npMatch = numPctRegex.exec(line)) !== null) {
+        const full = npMatch[0];
+        const rep = npMatch[1] + '%';
+        const saved = full.length - rep.length;
+        modifications.push({
+          category: '📊 Porcentaje',
+          line: lineNum,
+          col: npMatch.index + 1,
+          saved: saved,
+          desc: `"${full}" ➔ ${rep}`,
+          htmlPreview: `${escapeHtml(full)} ➔ ${rep}`
+        });
+      }
+      line = line.replace(numPctRegex, '$1%');
+    }
+
+    // K. Monedas escritas a símbolos
+    if (settings.replaceCurrency) {
+      CURRENCIES.forEach(c => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(c.word) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchWord = match[1];
+          const saved = matchWord.length - c.symbol.length;
+          modifications.push({
+            category: '💰 Moneda',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchWord}" ➔ ${c.symbol}`,
+            htmlPreview: `${escapeHtml(matchWord)} ➔ ${c.symbol}`
+          });
+        }
+        line = line.replace(regex, () => c.symbol);
+      });
+    }
+
+    // L. Unidades de medida a abreviaturas
+    if (settings.replaceUnits) {
+      UNITS.forEach(u => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(u.word) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchWord = match[1];
+          const saved = matchWord.length - u.sym.length;
+          modifications.push({
+            category: '🌡️ Unidad',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchWord}" ➔ ${u.sym}`,
+            htmlPreview: `${escapeHtml(matchWord)} ➔ ${u.sym}`
+          });
+        }
+        line = line.replace(regex, u.sym);
+      });
+    }
+
+    // M. Ciudades a emoji + bandera
+    if (settings.replaceCities) {
+      CITIES.forEach(c => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(c.city) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchCity = match[1];
+          const saved = matchCity.length - computeTwitterLength(c.emoji);
+          modifications.push({
+            category: '🏙️ Ciudad',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchCity}" ➔ ${c.emoji}`,
+            htmlPreview: `${escapeHtml(matchCity)} ➔ ${c.emoji}`
+          });
+        }
+        line = line.replace(regex, c.emoji);
+      });
+    }
+
+    // N. Países a banderas
+    if (settings.replaceCountries) {
+      COUNTRY_FLAGS.forEach(c => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(c.name) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchName = match[1];
+          const colPos = match.index + 1;
+          const saved = matchName.length - computeTwitterLength(c.flag);
+          modifications.push({
+            category: '🚩 Bandera de país',
+            line: lineNum,
+            col: colPos,
+            saved: saved,
+            desc: `Reemplazo de "${matchName}" por su bandera ${c.flag}`,
+            htmlPreview: `${escapeHtml(matchName)} ➔ ${c.flag}`
+          });
+        }
+        line = line.replace(regex, c.flag);
+      });
+    }
+
+    // O. Gentilicios a ♂/♀ + bandera
+    if (settings.replaceGentilicios) {
+      GENTILICIOS.forEach(g => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(g.name) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        const face = g.g === 'f' ? '👩' : g.g === 'm' ? '👨' : '👤';
+        const replacement = face + g.flag;
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchName = match[1];
+          const saved = matchName.length - computeTwitterLength(replacement);
+          modifications.push({
+            category: g.g === 'f' ? '👩🚩 Gentilicio ♀' : g.g === 'm' ? '👨🚩 Gentilicio ♂' : '👤🚩 Gentilicio',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchName}" ➔ ${replacement}`,
+            htmlPreview: `${escapeHtml(matchName)} ➔ ${replacement}`
+          });
+        }
+        line = line.replace(regex, replacement);
+      });
+    }
+
+    // P. Abreviaciones inteligentes (incluye ordinales 1ro, 2do, 3ro, etc.)
+    if (settings.abbrev) {
+      ABBREVIATIONS.forEach(a => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(a.word) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchWord = match[1];
+          const saved = matchWord.length - a.short.length;
+          modifications.push({
+            category: '✂️ Abreviación',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchWord}" ➔ ${a.short}`,
+            htmlPreview: `${escapeHtml(matchWord)} ➔ ${a.short}`
+          });
+        }
+        line = line.replace(regex, a.short);
+      });
+    }
+
+    // Q. Números escritos a dígitos
+    if (settings.replaceNumbers) {
+      NUMBER_WORDS.forEach(n => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(n.word) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchWord = match[1];
+          const saved = matchWord.length - n.num.length;
+          modifications.push({
+            category: '🔢 Número',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchWord}" ➔ ${n.num}`,
+            htmlPreview: `${escapeHtml(matchWord)} ➔ ${n.num}`
+          });
+        }
+        line = line.replace(regex, n.num);
+      });
+    }
+
+    // R. Limpiar signos dobles y apertura
+    if (settings.cleanPunctuation) {
+      const openCount = (line.match(/[¡¿]/g) || []).length;
+      if (openCount > 0) {
+        modifications.push({
+          category: '❗ Signo apertura',
+          line: lineNum,
+          col: 1,
+          saved: openCount,
+          desc: `${openCount} signo(s) de apertura (¡ / ¿) eliminados`,
+          htmlPreview: `<del>[${openCount}× ¡¿]</del>`
+        });
+        line = line.replace(/[¡¿]/g, '');
+      }
+
+      line = line.replace(/!{2,}/g, m => {
+        const saved = m.length - 1;
+        modifications.push({
+          category: '❗ Signos dobles',
+          line: lineNum,
+          col: 1,
+          saved: saved,
+          desc: `${m.length}× "!" reducidos a 1`,
+          htmlPreview: `<del>${escapeHtml(m)}</del> ➔ !`
+        });
+        return '!';
+      });
+
+      line = line.replace(/\?{2,}/g, m => {
+        const saved = m.length - 1;
+        modifications.push({
+          category: '❗ Signos dobles',
+          line: lineNum,
+          col: 1,
+          saved: saved,
+          desc: `${m.length}× "?" reducidos a 1`,
+          htmlPreview: `<del>${escapeHtml(m)}</del> ➔ ?`
+        });
+        return '?';
+      });
+
+      line = line.replace(/\.{4,}/g, m => {
+        const saved = m.length - 3;
+        modifications.push({
+          category: '❗ Signos dobles',
+          line: lineNum,
+          col: 1,
+          saved: saved,
+          desc: `${m.length}× "." reducidos a "..."`,
+          htmlPreview: `<del>${escapeHtml(m)}</del> ➔ ...`
+        });
+        return '...';
+      });
+    }
+
+    // S. Medios de transporte por emojis
+    if (settings.replaceTransport) {
+      TRANSPORTS.forEach(t => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(t.word) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchWord = match[1];
+          const saved = matchWord.length - computeTwitterLength(t.emoji);
+          modifications.push({
+            category: '🚀 Transporte',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchWord}" ➔ ${t.emoji}`,
+            htmlPreview: `${escapeHtml(matchWord)} ➔ ${t.emoji}`
+          });
+        }
+        line = line.replace(regex, t.emoji);
+      });
+    }
+
+    // T. Animales por emojis
+    if (settings.replaceAnimals) {
+      ANIMALS.forEach(a => {
+        const regex = new RegExp('(?<=^|[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])(' + escapeRegExp(a.word) + ')(?=[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]|$)', 'gi');
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          const matchWord = match[1];
+          const saved = matchWord.length - computeTwitterLength(a.emoji);
+          modifications.push({
+            category: '🐾 Animal',
+            line: lineNum,
+            col: match.index + 1,
+            saved: saved,
+            desc: `"${matchWord}" ➔ ${a.emoji}`,
+            htmlPreview: `${escapeHtml(matchWord)} ➔ ${a.emoji}`
+          });
+        }
+        line = line.replace(regex, a.emoji);
+      });
+    }
+
+    // Restaurar tokens protegidos (URLs, menciones, hashtags)
+    protectedTokens.forEach(p => {
+      line = line.replace(p.token, p.original);
+    });
+
+    newLines.push(line);
+  });
+
+  let result = newLines.join('\n');
+
+  // U. Gestión de saltos de línea (collapseNewlines)
+  if (settings.collapseNewlines) {
+    const leadNl = result.match(/^\n+/);
+    if (leadNl) {
+      const count = leadNl[0].length;
+      modifications.push({
+        category: '↵ Saltos de línea',
+        line: 1,
+        col: 1,
+        saved: count,
+        desc: `${count} salto(s) de línea vacíos al inicio del texto`,
+        htmlPreview: `<del>[${count} Enters al inicio]</del>`
+      });
+      result = result.slice(count);
+    }
+
+    const multiNlRegex = /\n{2,}/g;
+    let nlMatch;
+    while ((nlMatch = multiNlRegex.exec(result)) !== null) {
+      const matchLen = nlMatch[0].length;
+      const saved = matchLen - 1;
+      modifications.push({
+        category: '↵ Saltos múltiples',
+        line: 'Entre párrafos',
+        col: '-',
+        saved: saved,
+        desc: `${matchLen} saltos seguidos reducidos a 1 solo`,
+        htmlPreview: `<del>[${matchLen} Enters seguidos]</del>`
+      });
+    }
+    result = result.replace(/\n{2,}/g, '\n');
+
+    const trailNl = result.match(/\n+$/);
+    if (trailNl) {
+      const count = trailNl[0].length;
+      modifications.push({
+        category: '↵ Saltos de línea',
+        line: 'Final',
+        col: '-',
+        saved: count,
+        desc: `${count} salto(s) de línea vacíos al final del texto`,
+        htmlPreview: `<del>[${count} Enters al final]</del>`
+      });
+      result = result.slice(0, result.length - count);
+    }
+  } else if (settings.trimSpaces) {
+    const multiNlRegex = /\n{3,}/g;
+    let nlMatch;
+    while ((nlMatch = multiNlRegex.exec(result)) !== null) {
+      const matchLen = nlMatch[0].length;
+      const saved = matchLen - 2;
+      modifications.push({
+        category: '🧹 Saltos excesivos',
+        line: 'Varios',
+        col: '-',
+        saved: saved,
+        desc: `${matchLen} saltos seguidos reducidos a 2`,
+        htmlPreview: `<del>[${matchLen} saltos seguidos]</del>`
+      });
+    }
+    result = result.replace(/\n{3,}/g, '\n\n');
+  }
+
+  // V. URLs (cálculo de 23 caracteres fijos en X)
+  if (settings.detectUrls) {
+    const urlRegex = /https?:\/\/[^\s]+/gi;
+    let urlMatch;
+    while ((urlMatch = urlRegex.exec(result)) !== null) {
+      const url = urlMatch[0];
+      const realLen = url.length;
+      const saved = Math.max(0, realLen - 23);
+      modifications.push({
+        category: '🔗 URL en X',
+        line: 'Enlace',
+        col: '-',
+        saved: saved,
+        desc: `URL detectada: ${realLen} caracteres reales ➔ 23 fijos en X (ahorro: ${saved})`,
+        htmlPreview: `🔗 ${escapeHtml(url.slice(0, 32))}${url.length > 32 ? '...' : ''} (${realLen}c ➔ 23c)`
+      });
+    }
+  }
+
+  const effectiveXLen = computeTwitterLength(result, settings.detectUrls);
+
+  // W. Detector de hashtags y menciones
+  if (settings.detectHashtags) {
+    const hashMatches = result.match(/#[a-zA-Z0-9_]+/g) || [];
+    const mentionMatches = result.match(/@[a-zA-Z0-9_]+/g) || [];
+    if (hashMatches.length > 0 || mentionMatches.length > 0) {
+      const hashChars = hashMatches.reduce((s, h) => s + h.length, 0);
+      const mentionChars = mentionMatches.reduce((s, m) => s + m.length, 0);
+      const totalChars = hashChars + mentionChars;
+      modifications.push({
+        category: '📢 X Stats',
+        line: 'Hashtags/@',
+        col: '-',
+        saved: 0,
+        desc: `${hashMatches.length} hashtag(s) y ${mentionMatches.length} mención(es) ocupando ${totalChars} caracteres`,
+        htmlPreview: `#${hashMatches.length} tags (${hashChars}c) · @${mentionMatches.length} menciones (${mentionChars}c)`
+      });
+    }
+  }
+
+  const totalSaved = modifications.reduce((sum, m) => sum + m.saved, 0);
+
+  return {
+    text: result,
+    modifications,
+    totalSaved,
+    effectiveXLen
+  };
+}
+
+/* ================================================================
+   UI REFS
+================================================================ */
+const inputText        = document.getElementById('inputText');
+const inputCount       = document.getElementById('inputCount');
+const ringFill         = document.getElementById('ringFill');
+const outputText       = document.getElementById('outputText');
+const outputCount      = document.getElementById('outputCount');
+const outputBadge      = document.getElementById('outputBadge');
+const outputLimitLabel = document.getElementById('outputLimitLabel');
+const pillsContainer   = document.getElementById('pillsContainer');
+const quickBadge       = document.getElementById('quickBadge');
+const btnQuickAll      = document.getElementById('btnQuickAll');
+const btnQuickNone     = document.getElementById('btnQuickNone');
+const btnCopy          = document.getElementById('btnCopy');
+const auditTotalBadge  = document.getElementById('auditTotalBadge');
+const auditList        = document.getElementById('auditList');
+
+const btnSettings      = document.getElementById('btnSettings');
+const settingsOverlay  = document.getElementById('settingsOverlay');
+const btnClose         = document.getElementById('btnClose');
+const btnAccExpandAll  = document.getElementById('btnAccExpandAll');
+const btnAccCollapseAll= document.getElementById('btnAccCollapseAll');
+
+/* ================================================================
+   RENDER
+================================================================ */
+const RING_CIRCUMFERENCE = 2 * Math.PI * 11;
+
+function updateCounter(count, el, ringEl) {
+  el.textContent = count;
+  if (ringEl) {
+    const progress = Math.min(count / X_LIMIT, 1);
+    const offset   = RING_CIRCUMFERENCE * (1 - progress);
+    ringEl.style.strokeDashoffset = offset.toFixed(2);
+
+    if (count === 0) {
+      el.className       = 'counter-value neutral';
+      ringEl.style.stroke = 'var(--border2)';
+    } else if (count <= X_LIMIT) {
+      el.className       = 'counter-value neutral';
+      ringEl.style.stroke = 'var(--accent)';
+    } else if (count <= X_LIMIT * 1.5) {
+      el.className       = 'counter-value warning';
+      ringEl.style.stroke = 'var(--orange)';
+    } else {
+      el.className       = 'counter-value danger';
+      ringEl.style.stroke = 'var(--red)';
+    }
+  }
+}
+
+function updateOutputBadge(count, effectiveCount) {
+  const displayCount = effectiveCount;
+  outputCount.textContent = displayCount;
+  outputBadge.className   = 'counter-badge';
+
+  const remaining = X_LIMIT - displayCount;
+  if (remaining >= 0) {
+    outputLimitLabel.textContent = `/ 280 (${remaining} disp.)`;
+  } else {
+    outputLimitLabel.textContent = `/ 280 (${Math.abs(remaining)} excedidos)`;
+  }
+
+  if (displayCount === 0) {
+    outputBadge.classList.add('neutral');
+  } else if (displayCount <= X_LIMIT) {
+    outputBadge.classList.add('success');
+  } else if (displayCount <= X_LIMIT * 1.5) {
+    outputBadge.classList.add('warning');
+  } else {
+    outputBadge.classList.add('danger');
+  }
+}
+
+function renderQuickPills() {
+  let activeCount = 0;
+  const html = FEATURES_META.map(f => {
+    const isActive = Boolean(state.settings[f.key]);
+    if (isActive) activeCount++;
+    return `
+      <button
+        type="button"
+        class="pill-chip ${isActive ? 'active' : ''}"
+        data-key="${f.key}"
+        title="${escapeHtml(f.desc)}"
+      >
+        <span class="chip-icon">${f.icon}</span>
+        <span class="chip-label">${f.short}</span>
+        <span class="chip-check">${isActive ? '✓' : '+'}</span>
+      </button>
+    `;
+  }).join('');
+
+  pillsContainer.innerHTML = html;
+  quickBadge.textContent = `${activeCount} activas`;
+
+  const groupCounts = {};
+  FEATURES_META.forEach(f => {
+    groupCounts[f.group] = groupCounts[f.group] || { total: 0, active: 0 };
+    groupCounts[f.group].total++;
+    if (state.settings[f.key]) groupCounts[f.group].active++;
+  });
+
+  for (const g in groupCounts) {
+    const badgeEl = document.getElementById(`badge_group_${g}`);
+    if (badgeEl) {
+      if (g === 'custom') {
+        // Custom group badge shows rule count, not feature-active count
+        const activeRuleCount = (state.customRules || []).filter(r => r.find && r.find.trim()).length;
+        badgeEl.textContent = `${activeRuleCount} regla${activeRuleCount !== 1 ? 's' : ''}`;
+      } else {
+        badgeEl.textContent = `${groupCounts[g].active}/${groupCounts[g].total} activas`;
+      }
+    }
+  }
+}
+
+function renderAudit(modifications, totalSaved) {
+  if (totalSaved === 0 && modifications.length === 0) {
+    auditTotalBadge.textContent = '0 caracteres ahorrados';
+    auditTotalBadge.className   = 'audit-total-badge zero';
+    auditList.innerHTML         = '<div class="audit-empty">No se aplicaron modificaciones en este texto.</div>';
+    return;
+  }
+
+  const labelSaved = totalSaved === 1 ? '1 carácter ahorrado' : `${totalSaved} caracteres ahorrados`;
+  auditTotalBadge.textContent = totalSaved > 0 ? `⚡ -${totalSaved} (${labelSaved})` : 'ℹ️ Información activa';
+  auditTotalBadge.className   = totalSaved > 0 ? 'audit-total-badge' : 'audit-total-badge zero';
+
+  const html = modifications.map((m) => {
+    const lineLabel = typeof m.line === 'number' ? `Línea ${m.line}` : m.line;
+    const colLabel  = m.col && m.col !== '-' ? `, col. ${m.col}` : '';
+    const posText   = `${lineLabel}${colLabel}`;
+    const savedText = m.saved > 0 ? `-${m.saved} char${m.saved > 1 ? 's' : ''}` : 'info';
+    const pillClass = m.saved > 0 ? 'audit-saved-pill' : 'audit-saved-pill info';
+
+    return `
+      <div class="audit-item">
+        <div class="audit-item-info">
+          <div class="audit-item-header">
+            <span class="audit-item-badge">${m.category}</span>
+            <span class="audit-item-line">${posText}</span>
+          </div>
+          <div class="audit-snippet" title="${escapeHtml(m.desc)}">${m.htmlPreview}</div>
+        </div>
+        <div class="${pillClass}">${savedText}</div>
+      </div>
+    `;
+  }).join('');
+
+  auditList.innerHTML = html;
+}
+
+function syncSettingsCheckboxes() {
+  FEATURES_META.forEach(f => {
+    const cb = document.getElementById(`toggle_${f.key}`);
+    if (cb) {
+      cb.checked = Boolean(state.settings[f.key]);
+    }
+  });
+}
+
+/* ================================================================
+   CUSTOM RULES UI
+================================================================ */
+function renderCustomRules() {
+  const list = document.getElementById('customRulesList');
+  if (!list) return;
+  if (!state.customRules || state.customRules.length === 0) {
+    list.innerHTML = '<div class="custom-rules-empty">Todavía no hay reglas. Agregá una con el botón de abajo.</div>';
+  } else {
+    list.innerHTML = state.customRules.map((rule, i) => `
+      <div class="custom-rule-row" data-idx="${i}">
+        <div class="custom-rule-field">
+          <input type="text" class="custom-rule-find"    placeholder="Buscar…"     value="${escapeHtml(rule.find    || '')}" data-idx="${i}" data-field="find" />
+          <button type="button" class="btn-emoji-pick" data-idx="${i}" data-field="find"    aria-label="Insertar emoji en Buscar">😊</button>
+        </div>
+        <div class="custom-rule-field">
+          <input type="text" class="custom-rule-replace" placeholder="Reemplazar…" value="${escapeHtml(rule.replace || '')}" data-idx="${i}" data-field="replace" />
+          <button type="button" class="btn-emoji-pick" data-idx="${i}" data-field="replace" aria-label="Insertar emoji en Reemplazar">😊</button>
+        </div>
+        <button type="button" class="btn-remove-custom-rule" data-idx="${i}" aria-label="Eliminar regla">✕</button>
+      </div>
+    `).join('');
+  }
+  // Update group badge: show rule count, not feature-active count
+  const badge = document.getElementById('badge_group_custom');
+  if (badge) {
+    const activeRuleCount = (state.customRules || []).filter(r => r.find && r.find.trim()).length;
+    badge.textContent = `${activeRuleCount} regla${activeRuleCount !== 1 ? 's' : ''}`;
+  }
+}
+
+// Wire up "Agregar regla" button
+const btnAddCustomRule = document.getElementById('btnAddCustomRule');
+if (btnAddCustomRule) {
+  btnAddCustomRule.addEventListener('click', () => {
+    state.customRules = state.customRules || [];
+    state.customRules.push({ find: '', replace: '' });
+    saveSettings();
+    renderCustomRules();
+  });
+}
+
+// Delegate input/change/remove events on the custom rules box
+const customRulesBox = document.getElementById('customRulesBox');
+if (customRulesBox) {
+  customRulesBox.addEventListener('input', (e) => {
+    const idx = parseInt(e.target.dataset.idx, 10);
+    if (isNaN(idx) || !state.customRules[idx]) return;
+    if (e.target.classList.contains('custom-rule-find')) {
+      state.customRules[idx].find = e.target.value;
+    } else if (e.target.classList.contains('custom-rule-replace')) {
+      state.customRules[idx].replace = e.target.value;
+    }
+    saveSettings();
+    // Solo actualizar el badge sin rerenderizar la lista (evita perder el foco al tipear)
+    const badge = document.getElementById('badge_group_custom');
+    if (badge) {
+      const activeRuleCount = (state.customRules || []).filter(r => r.find && r.find.trim()).length;
+      badge.textContent = `${activeRuleCount} regla${activeRuleCount !== 1 ? 's' : ''}`;
+    }
+    render();
+  });
+
+  customRulesBox.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remove-custom-rule');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx, 10);
+    if (!isNaN(idx)) {
+      state.customRules.splice(idx, 1);
+      saveSettings();
+      renderCustomRules();
+      render();
+    }
+  });
+}
+
+/* ================================================================
+   HILO — SPLIT EN TWEETS
+================================================================ */
+function getHiloLabel(partNum, total) {
+  const numberFirst = state.hiloSettings.numberFirst !== false;
+  const title = (state.hiloSettings.title || '').trim();
+  const suffix = title ? ` ${title}` : '';
+
+  if (numberFirst) {
+    return `${partNum}/${total}${suffix}\n`;
+  } else {
+    if (partNum === 1) {
+      return '';
+    }
+    const displayPart = partNum - 1;
+    const displayTotal = Math.max(1, total - 1);
+    return `${displayPart}/${displayTotal}${suffix}\n`;
+  }
+}
+
+function splitIntoThread(text) {
+  const MAX = 280;
+
+  // Collect and sort valid manual cut points
+  const manualCuts = [...new Set(state.hiloManualBreaks || [])]
+    .filter(pos => typeof pos === 'number' && pos > 0 && pos < text.length)
+    .sort((a, b) => a - b);
+
+  // Divide text into manual segments
+  const segments = [];
+  let prev = 0;
+  for (const c of manualCuts) {
+    segments.push({
+      start: prev,
+      end: c,
+      text: text.slice(prev, c).trim(),
+      isManualEnd: true
+    });
+    prev = c;
+  }
+  if (prev < text.length) {
+    segments.push({
+      start: prev,
+      end: text.length,
+      text: text.slice(prev).trim(),
+      isManualEnd: false
+    });
+  }
+
+  function simulateSplit(totalEstimate) {
+    const allChunks = [];
+
+    for (let sIdx = 0; sIdx < segments.length; sIdx++) {
+      const seg = segments[sIdx];
+      let segRemaining = seg.text;
+      let segOffset = seg.start;
+
+      while (segRemaining.length > 0) {
+        const globalPartNum = allChunks.length + 1;
+        const label = getHiloLabel(globalPartNum, totalEstimate);
+        const labelLen = computeTwitterLength(label, false);
+        const available = MAX - labelLen;
+
+        const remLen = computeTwitterLength(segRemaining, false);
+        if (remLen <= available) {
+          allChunks.push({
+            text: segRemaining,
+            start: segOffset,
+            end: segOffset + segRemaining.length,
+            isManualCut: false
+          });
+          break;
+        }
+
+        const breakPoints = [];
+        const re = /\n\n|\n| /g;
+        let m;
+        while ((m = re.exec(segRemaining)) !== null) {
+          breakPoints.push(m.index);
+        }
+
+        let cutAt = 0;
+        for (const bp of breakPoints) {
+          const candidate = segRemaining.slice(0, bp);
+          if (computeTwitterLength(candidate, false) <= available) {
+            cutAt = bp;
+          } else {
+            break;
+          }
+        }
+
+        if (cutAt === 0) {
+          let c = '';
+          for (const ch of segRemaining) {
+            const test = c + ch;
+            if (computeTwitterLength(test, false) > available) break;
+            c = test;
+          }
+          cutAt = c.length || 1;
+        }
+
+        allChunks.push({
+          text: segRemaining.slice(0, cutAt).trim(),
+          start: segOffset,
+          end: segOffset + cutAt,
+          isManualCut: false
+        });
+
+        segOffset += cutAt;
+        segRemaining = segRemaining.slice(cutAt).trim();
+      }
+
+      // Mark the last chunk of this segment as manual cut if segment had isManualEnd
+      if (allChunks.length > 0 && seg.isManualEnd) {
+        allChunks[allChunks.length - 1].isManualCut = true;
+        allChunks[allChunks.length - 1].cutPoint = seg.end;
+      }
+    }
+
+    return allChunks;
+  }
+
+  let estimate = segments.length || 2;
+  let chunks = simulateSplit(estimate);
+  for (let i = 0; i < 8; i++) {
+    if (chunks.length === estimate) break;
+    estimate = chunks.length;
+    chunks = simulateSplit(estimate);
+  }
+
+  return chunks;
+}
+
+function renderHilo(transformedText) {
+  const hiloSection = document.getElementById('hiloSection');
+  const hiloList    = document.getElementById('hiloList');
+  const hiloBadge   = document.getElementById('hiloBadge');
+  const hiloToggle  = document.getElementById('hiloToggle');
+  if (!hiloSection || !hiloList) return;
+
+  const xLen = computeTwitterLength(transformedText, state.settings.detectUrls);
+
+  if (!transformedText || transformedText.trim() === '' || xLen <= 280) {
+    hiloSection.style.display = 'none';
+    hiloSection.classList.add('collapsed');
+    if (hiloToggle) hiloToggle.setAttribute('aria-expanded', 'false');
+    _hiloTweets = [];
+    _hiloTweetObjs = [];
+    return;
+  }
+
+  // Mostrar sección. Si antes estaba oculta, empezar colapsada
+  const wasHidden = hiloSection.style.display === 'none';
+  hiloSection.style.display = '';
+  if (wasHidden) {
+    hiloSection.classList.add('collapsed');
+    if (hiloToggle) hiloToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  const tweetObjs = splitIntoThread(transformedText);
+  _hiloTweetObjs  = tweetObjs;
+  const total     = tweetObjs.length;
+
+  // Store full tweet texts (label + content) in module-level array
+  _hiloTweets = tweetObjs.map((t, i) => `${getHiloLabel(i + 1, total)}${t.text}`);
+
+  const cutCount = (state.hiloManualBreaks || []).filter(p => p > 0 && p < transformedText.length).length;
+  if (hiloBadge) {
+    let badgeText = `${total} tweet${total !== 1 ? 's' : ''}`;
+    if (cutCount > 0) {
+      badgeText += ` · ${cutCount} corte${cutCount > 1 ? 's' : ''}`;
+    }
+    hiloBadge.textContent = badgeText;
+  }
+
+  const btnResetCuts = document.getElementById('btnHiloResetCuts');
+  if (btnResetCuts) {
+    btnResetCuts.style.display = cutCount > 0 ? 'inline-flex' : 'none';
+    btnResetCuts.textContent = `🔄 Restablecer cortes (${cutCount})`;
+  }
+
+  hiloList.innerHTML = tweetObjs.map((tweetObj, i) => {
+    const fullText = _hiloTweets[i];
+    const chars    = computeTwitterLength(fullText, state.settings.detectUrls);
+    const tweetNum = i + 1;
+    let cardLabel  = `Tweet ${tweetNum} de ${total}`;
+    if (state.hiloSettings.numberFirst === false) {
+      if (tweetNum === 1) {
+        cardLabel = `Tweet 1 de ${total} (Principal)`;
+      } else {
+        cardLabel = `Tweet ${tweetNum} de ${total} [${tweetNum - 1}/${total - 1}]`;
+      }
+    }
+
+    const isCutterActive = _activeCutter && _activeCutter.idx === i;
+    let cutterHtml = '';
+
+    if (isCutterActive) {
+      const tokens = tokenizeWords(tweetObj.text);
+      const chosenWordIdx = _activeCutter.wordIdx;
+      const hasChosen = chosenWordIdx >= 0 && chosenWordIdx < tokens.length;
+
+      const wordsChipsHtml = tokens.map((tok, wIdx) => {
+        let cls = 'cut-word-chip';
+        let scissor = '';
+        if (hasChosen) {
+          if (wIdx < chosenWordIdx) {
+            cls += ' word-stays';
+          } else if (wIdx === chosenWordIdx) {
+            cls += ' word-pivot';
+            scissor = '<span class="cut-scissor-marker">✂️ CORTE AQUÍ</span>';
+          } else {
+            cls += ' word-moves';
+          }
+        }
+        return `<span class="${cls}" data-tweet-idx="${i}" data-word-idx="${wIdx}" role="button" tabindex="0">${escapeHtml(tok.word)}</span>${scissor}`;
+      }).join(' ');
+
+      let previewHtml = '';
+      if (hasChosen) {
+        const cutEnd = tokens[chosenWordIdx].end;
+        const part1Text = tweetObj.text.slice(0, cutEnd).trim();
+        const part2Text = tweetObj.text.slice(cutEnd).trim();
+        const nextTotal = total + 1;
+        const part1Label = getHiloLabel(tweetNum, nextTotal);
+        const part1Full = `${part1Label}${part1Text}`;
+        const part1Chars = computeTwitterLength(part1Full, state.settings.detectUrls);
+        const part2Chars = computeTwitterLength(part2Text, state.settings.detectUrls);
+
+        previewHtml = `
+          <div class="hilo-cutter-preview-grid">
+            <div class="cutter-preview-box stays">
+              <div class="cutter-box-header">
+                <span>📌 Queda en este Tweet</span>
+                <span class="cutter-chars ${part1Chars > 280 ? 'over' : ''}">${part1Chars}/280</span>
+              </div>
+              <div class="cutter-box-text">${escapeHtml(part1Text)}</div>
+            </div>
+            <div class="cutter-preview-box moves">
+              <div class="cutter-box-header">
+                <span>➡️ Pasa al siguiente Tweet</span>
+                <span class="cutter-chars">${part2Chars} caracteres</span>
+              </div>
+              <div class="cutter-box-text">${escapeHtml(part2Text || '(vuelto a redistribuir)')}</div>
+            </div>
+          </div>
+          <div class="hilo-cutter-actions">
+            <button type="button" class="btn-confirm-cut" data-tweet-idx="${i}" data-word-idx="${chosenWordIdx}">
+              ✂️ Confirmar corte después de "${escapeHtml(tokens[chosenWordIdx].word)}"
+            </button>
+            <button type="button" class="btn-cancel-cut" data-tweet-idx="${i}">
+              ✕ Cancelar
+            </button>
+          </div>
+        `;
+      } else {
+        previewHtml = `
+          <div class="hilo-cutter-hint">
+            👉 Tocá o hacé clic en cualquier palabra arriba para ver exactamente cómo se dividirá el Tweet.
+          </div>
+        `;
+      }
+
+      cutterHtml = `
+        <div class="hilo-visual-cutter">
+          <div class="hilo-cutter-intro">
+            <span>✂️ <strong>Hacé clic o tocá la palabra</strong> donde querés que termine este Tweet:</span>
+          </div>
+          <div class="hilo-words-flow">
+            ${wordsChipsHtml}
+          </div>
+          ${previewHtml}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="hilo-tweet ${isCutterActive ? 'has-active-cutter' : ''}" data-idx="${i}">
+        <div class="hilo-tweet-header">
+          <span class="hilo-tweet-label">${escapeHtml(cardLabel)}</span>
+          <span class="hilo-tweet-chars">${chars}/280</span>
+        </div>
+        ${tweetObj.isManualCut ? `
+          <div class="hilo-cut-applied-banner">
+            <span>✂️ Salto manual aplicado al final de este Tweet</span>
+            <button type="button" class="btn-hilo-uncut" data-idx="${i}" title="Quitar este salto manual y volver a unir">
+              🔗 Quitar salto y unir
+            </button>
+          </div>
+        ` : ''}
+        ${isCutterActive ? cutterHtml : `
+          <textarea class="hilo-tweet-body" readonly spellcheck="false" data-idx="${i}">${escapeHtml(fullText)}</textarea>
+        `}
+        <div class="hilo-tweet-footer">
+          <button type="button" class="btn-hilo-cut ${isCutterActive ? 'active' : ''}" data-idx="${i}" title="Abrir selector visual interactivo para elegir exactamente dónde cortar">
+            ${isCutterActive ? '✕ Cerrar selector' : '✂️ Elegir dónde cortar'}
+          </button>
+          <button type="button" class="btn-copy-tweet" data-idx="${i}">📋 Copiar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function render() {
+  const input    = state.input;
+  const inputLen = computeTwitterLength(input, state.settings.detectUrls);
+
+  updateCounter(inputLen, inputCount, ringFill);
+
+  const { text: transformed, modifications, totalSaved, effectiveXLen } = transformWithTracking(input, state.settings);
+  const transformedLen = effectiveXLen;
+
+  state.lastTransformedText = transformed;
+
+  if (input.trim() === '') {
+    outputText.value = '';
+    outputText.classList.add('empty');
+  } else {
+    outputText.value = transformed;
+    outputText.classList.remove('empty');
+  }
+
+  updateOutputBadge(transformedLen, effectiveXLen);
+  renderQuickPills();
+  renderAudit(modifications, totalSaved);
+  renderHilo(transformed);
+}
+
+/* ================================================================
+   EVENT LISTENERS — INPUT & CLICKS
+================================================================ */
+inputText.addEventListener('input', () => {
+  state.input = inputText.value;
+  render();
+});
+
+pillsContainer.addEventListener('click', (e) => {
+  const btn = e.target.closest('.pill-chip');
+  if (!btn) return;
+  const key = btn.dataset.key;
+  if (!key || !(key in state.settings)) return;
+
+  state.settings[key] = !state.settings[key];
+  saveSettings();
+  syncSettingsCheckboxes();
+  render();
+});
+
+btnQuickAll.addEventListener('click', () => {
+  FEATURES_META.forEach(f => { state.settings[f.key] = true; });
+  saveSettings();
+  syncSettingsCheckboxes();
+  render();
+});
+
+btnQuickNone.addEventListener('click', () => {
+  FEATURES_META.forEach(f => { state.settings[f.key] = false; });
+  saveSettings();
+  syncSettingsCheckboxes();
+  render();
+});
+
+btnCopy.addEventListener('click', async () => {
+  const text = state.lastTransformedText !== undefined ? state.lastTransformedText : outputText.value;
+  if (!text || outputText.classList.contains('empty')) return;
+
+  // Normalizar saltos de línea para compatibilidad universal con el editor de X (Twitter)
+  const normalizedText = text.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(normalizedText);
+    } else {
+      throw new Error('Clipboard API no disponible');
+    }
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = normalizedText;
+    ta.style.position = 'fixed';
+    ta.style.opacity  = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+
+  btnCopy.textContent = '✅ Copiado';
+  btnCopy.classList.add('copied');
+  btnCopy.classList.add('pop-anim');
+
+  setTimeout(() => {
+    btnCopy.textContent = '📋 Copiar';
+    btnCopy.classList.remove('copied');
+    btnCopy.classList.remove('pop-anim');
+  }, 2000);
+});
+
+// Seguimiento de posición de selección en tweets de hilo
+let _lastActiveSelection = { idx: -1, pos: -1 };
+
+const hiloListEl = document.getElementById('hiloList');
+if (hiloListEl) {
+  hiloListEl.addEventListener('mouseup', (e) => {
+    const ta = e.target.closest('.hilo-tweet-body');
+    if (ta) {
+      const idx = parseInt(ta.dataset.idx, 10);
+      _lastActiveSelection = { idx, pos: ta.selectionEnd || ta.selectionStart || 0 };
+    }
+  });
+  hiloListEl.addEventListener('keyup', (e) => {
+    const ta = e.target.closest('.hilo-tweet-body');
+    if (ta) {
+      const idx = parseInt(ta.dataset.idx, 10);
+      _lastActiveSelection = { idx, pos: ta.selectionEnd || ta.selectionStart || 0 };
+    }
+  });
+  hiloListEl.addEventListener('touchend', (e) => {
+    const ta = e.target.closest('.hilo-tweet-body');
+    if (ta) {
+      const idx = parseInt(ta.dataset.idx, 10);
+      setTimeout(() => {
+        _lastActiveSelection = { idx, pos: ta.selectionEnd || ta.selectionStart || 0 };
+      }, 60);
+    }
+  });
+}
+
+// Delegación de eventos en hiloList (Copiar, Cortar, Unir)
+document.getElementById('hiloList')?.addEventListener('click', (e) => {
+  // 1. Botón Copiar
+  const copyBtn = e.target.closest('.btn-copy-tweet');
+  if (copyBtn) {
+    const idx  = parseInt(copyBtn.dataset.idx, 10);
+    const text = _hiloTweets[idx] || '';
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.classList.add('copied');
+      copyBtn.textContent = '✓ Copiado';
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyBtn.textContent = '📋 Copiar';
+      }, 1800);
+    }).catch(() => {
+      copyBtn.textContent = '✗ Error';
+      setTimeout(() => { copyBtn.textContent = '📋 Copiar'; }, 1800);
+    });
+    return;
+  }
+
+  // 2. Abrir / Cerrar Selector Visual de Corte
+  const cutBtn = e.target.closest('.btn-hilo-cut');
+  if (cutBtn) {
+    const idx = parseInt(cutBtn.dataset.idx, 10);
+    if (_activeCutter && _activeCutter.idx === idx) {
+      _activeCutter = null;
+    } else {
+      _activeCutter = { idx, wordIdx: -1 };
+    }
+    renderHilo(state.lastTransformedText);
+    return;
+  }
+
+  // 3. Clic o toque en una palabra dentro del cortador visual
+  const wordChip = e.target.closest('.cut-word-chip');
+  if (wordChip) {
+    const tweetIdx = parseInt(wordChip.dataset.tweetIdx, 10);
+    const wordIdx  = parseInt(wordChip.dataset.wordIdx, 10);
+    _activeCutter = { idx: tweetIdx, wordIdx };
+    renderHilo(state.lastTransformedText);
+    return;
+  }
+
+  // 4. Confirmar corte después de la palabra seleccionada
+  const confirmBtn = e.target.closest('.btn-confirm-cut');
+  if (confirmBtn) {
+    const tweetIdx = parseInt(confirmBtn.dataset.tweetIdx, 10);
+    const wordIdx  = parseInt(confirmBtn.dataset.wordIdx, 10);
+    const tweetObj = _hiloTweetObjs[tweetIdx];
+    if (!tweetObj) return;
+
+    const tokens = tokenizeWords(tweetObj.text);
+    if (wordIdx >= 0 && wordIdx < tokens.length) {
+      const chosen = tokens[wordIdx];
+      const absCut = tweetObj.start + chosen.end;
+
+      state.hiloManualBreaks = state.hiloManualBreaks || [];
+      if (!state.hiloManualBreaks.includes(absCut)) {
+        state.hiloManualBreaks.push(absCut);
+        state.hiloManualBreaks.sort((a, b) => a - b);
+        saveSettings();
+      }
+    }
+    _activeCutter = null;
+    renderHilo(state.lastTransformedText);
+    return;
+  }
+
+  // 5. Cancelar selector visual de corte
+  const cancelBtn = e.target.closest('.btn-cancel-cut');
+  if (cancelBtn) {
+    _activeCutter = null;
+    renderHilo(state.lastTransformedText);
+    return;
+  }
+
+  // 6. Botón Unir con siguiente (Quitar corte manual)
+  const uncutBtn = e.target.closest('.btn-hilo-uncut');
+  if (uncutBtn) {
+    const idx = parseInt(uncutBtn.dataset.idx, 10);
+    const tweetObj = _hiloTweetObjs[idx];
+    if (!tweetObj) return;
+
+    const cutPoint = tweetObj.cutPoint || tweetObj.end;
+    state.hiloManualBreaks = (state.hiloManualBreaks || []).filter(p => Math.abs(p - cutPoint) > 5 && p !== cutPoint);
+    saveSettings();
+    renderHilo(state.lastTransformedText);
+    return;
+  }
+});
+
+// Botón para restablecer todos los cortes manuales
+document.getElementById('btnHiloResetCuts')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  state.hiloManualBreaks = [];
+  saveSettings();
+  renderHilo(state.lastTransformedText);
+});
+
+/* ================================================================
+   ACORDEÓN: HILO + MODIFICACIONES
+================================================================ */
+function toggleCollapsible(card, btn) {
+  const isCollapsed = card.classList.contains('collapsed');
+  card.classList.toggle('collapsed', !isCollapsed);
+  btn.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
+}
+
+document.getElementById('hiloToggle')?.addEventListener('click', () => {
+  const card = document.getElementById('hiloSection');
+  const btn  = document.getElementById('hiloToggle');
+  if (card && btn) toggleCollapsible(card, btn);
+});
+
+document.getElementById('auditToggle')?.addEventListener('click', () => {
+  const card = document.getElementById('auditCard');
+  const btn  = document.getElementById('auditToggle');
+  if (card && btn) toggleCollapsible(card, btn);
+});
+
+/* ================================================================
+   CONFIGURACIÓN DEL HILO
+================================================================ */
+const btnHiloConfig      = document.getElementById('btnHiloConfig');
+const hiloConfigPanel    = document.getElementById('hiloConfigPanel');
+const hiloOptNumberFirst = document.getElementById('hiloOptNumberFirst');
+const hiloOptTitle       = document.getElementById('hiloOptTitle');
+
+function syncHiloSettingsUI() {
+  if (hiloOptNumberFirst) {
+    hiloOptNumberFirst.checked = state.hiloSettings.numberFirst !== false;
+  }
+  if (hiloOptTitle) {
+    hiloOptTitle.value = state.hiloSettings.title || '';
+  }
+}
+
+btnHiloConfig?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!hiloConfigPanel) return;
+  const card = document.getElementById('hiloSection');
+  const toggleBtn = document.getElementById('hiloToggle');
+  // Si la sección del hilo estaba colapsada, desplegarla para mostrar la configuración
+  if (card && card.classList.contains('collapsed')) {
+    card.classList.remove('collapsed');
+    toggleBtn?.setAttribute('aria-expanded', 'true');
+  }
+  const isHidden = hiloConfigPanel.style.display === 'none';
+  hiloConfigPanel.style.display = isHidden ? 'flex' : 'none';
+  btnHiloConfig.classList.toggle('active', isHidden);
+});
+
+hiloOptNumberFirst?.addEventListener('change', () => {
+  state.hiloSettings.numberFirst = hiloOptNumberFirst.checked;
+  saveSettings();
+  if (state.lastTransformedText) {
+    renderHilo(state.lastTransformedText);
+  }
+});
+
+hiloOptTitle?.addEventListener('input', () => {
+  state.hiloSettings.title = hiloOptTitle.value;
+  saveSettings();
+  if (state.lastTransformedText) {
+    renderHilo(state.lastTransformedText);
+  }
+});
+
+// Botones predefinidos de hilo (🧵, 🧵 Hilo, 👇, Ninguno)
+document.querySelectorAll('.btn-hilo-preset').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const val = btn.dataset.text ?? '';
+    state.hiloSettings.title = val;
+    if (hiloOptTitle) hiloOptTitle.value = val;
+    saveSettings();
+    if (state.lastTransformedText) {
+      renderHilo(state.lastTransformedText);
+    }
+  });
+});
+
+// Botón de emoji para cabecera de hilo
+document.getElementById('btnHiloEmoji')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const btn = e.currentTarget;
+  const input = document.getElementById('hiloOptTitle');
+  const picker = document.getElementById('emojiPicker');
+  const isOpen = picker?.classList.contains('open');
+  if (isOpen && _emojiTargetInput === input) {
+    closeEmojiPicker();
+  } else {
+    openEmojiPicker(btn, input);
+  }
+});
+
+// Modales
+function openSettings() {
+  syncSettingsCheckboxes();
+  settingsOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSettings() {
+  settingsOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+btnSettings.addEventListener('click', openSettings);
+btnClose.addEventListener('click', closeSettings);
+
+settingsOverlay.addEventListener('click', (e) => {
+  if (e.target === settingsOverlay) closeSettings();
+});
+
+// ACORDEÓN DESPLEGABLE / COLAPSABLE AUTOMÁTICO
+document.getElementById('settingsPanel').addEventListener('click', (e) => {
+  if (e.target.closest('.toggle-row') || e.target.closest('.toggle-switch')) return;
+
+  const header = e.target.closest('.settings-group-header');
+  if (!header) return;
+
+  const card = header.closest('.settings-group-card');
+  if (!card) return;
+
+  const isCollapsed = card.classList.contains('collapsed');
+
+  if (isCollapsed) {
+    document.querySelectorAll('.settings-group-card').forEach(c => {
+      c.classList.add('collapsed');
+    });
+    card.classList.remove('collapsed');
+  } else {
+    card.classList.add('collapsed');
+  }
+});
+
+// Botones Abrir todo / Cerrar todo
+btnAccExpandAll?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.querySelectorAll('.settings-group-card').forEach(c => c.classList.remove('collapsed'));
+});
+
+btnAccCollapseAll?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.querySelectorAll('.settings-group-card').forEach(c => c.classList.add('collapsed'));
+});
+
+// Delegación de eventos para toggles en settings
+document.getElementById('settingsPanel').addEventListener('change', (e) => {
+  const input = e.target;
+  if (input && input.dataset && input.dataset.key) {
+    const key = input.dataset.key;
+    state.settings[key] = input.checked;
+    saveSettings();
+    render();
+  }
+});
+
+/* ================================================================
+   BOTÓN LIMPIAR CACHÉ Y FORZAR RECARGA
+================================================================ */
+const btnForceReload = document.getElementById('btnForceReload');
+if (btnForceReload) {
+  btnForceReload.addEventListener('click', async () => {
+    btnForceReload.disabled = true;
+    btnForceReload.textContent = '⏳ Limpiando caché...';
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(r => r.unregister()));
+      }
+    } catch (e) {
+      console.warn('Error purgando caché:', e);
+    }
+    // Forzar recarga completa desde el servidor ignorando la caché local
+    window.location.reload(true);
+  });
+}
+
+
+/* ================================================================
+   SISTEMA DE LICENCIAS CRIPTOGRÁFICAS (OFFLINE)
+================================================================ */
+const SECRET_SALT = 'X_MSG_ADAPTER_2026_SECURE_SALT_KEY';
+const LICENSE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+
+function sha256(ascii) {
+  function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+  const mathPow = Math.pow;
+  const maxWord = mathPow(2, 32);
+  let lengthProperty = 'length';
+  let i, j;
+  let result = '';
+  const words = [];
+  const asciiBitLength = ascii[lengthProperty] * 8;
+  let hash = sha256.h = sha256.h || [];
+  const k = sha256.k = sha256.k || [];
+  let primeCounter = k[lengthProperty];
+  const isComposite = {};
+  for (let candidate = 2; primeCounter < 64; candidate++) {
+    if (!isComposite[candidate]) {
+      for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+      hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+      k[primeCounter++] = (mathPow(candidate, 1/3) * maxWord) | 0;
+    }
+  }
+  hash = hash.slice(0);
+  ascii += '\x80';
+  while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+  for (i = 0; i < ascii[lengthProperty]; i++) {
+    j = ascii.charCodeAt(i);
+    if (j >> 8) return '';
+    words[i >> 2] |= j << ((3 - i) % 4) * 8;
+  }
+  words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+  words[words[lengthProperty]] = (asciiBitLength) | 0;
+  for (j = 0; j < words[lengthProperty];) {
+    const w = words.slice(j, j += 16);
+    const oldHash = hash;
+    hash = hash.slice(0, 8);
+    for (i = 0; i < 64; i++) {
+      const w15 = w[i - 15], w2 = w[i - 2];
+      const s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3);
+      const s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10);
+      const ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
+      const maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
+      const temp1 = hash[7] + (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) + ch + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + s0 + w[i - 7] + s1) | 0);
+      const temp2 = (rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) + maj;
+      hash = [(temp1 + temp2) | 0].concat(hash);
+      hash[4] = (hash[4] + temp1) | 0;
+    }
+    for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+  }
+  for (i = 0; i < 8; i++) {
+    for (j = 3; j >= 0; j--) {
+      const b = (hash[i] >> (8 * j)) & 255;
+      result += (b < 16 ? '0' : '') + b.toString(16);
+    }
+  }
+  return result;
+}
+
+function validateLicenseKey(rawKey) {
+  if (!rawKey || typeof rawKey !== 'string') return false;
+  const clean = rawKey.trim().toUpperCase();
+  const parts = clean.split('-');
+  if (parts.length !== 4 || parts[0] !== 'XADAPT') return false;
+  const [prefix, b1, b2, b3] = parts;
+  if (b1.length !== 4 || b2.length !== 4 || b3.length !== 4) return false;
+
+  const payload = 'XADAPT-' + b1 + '-' + b2 + '-' + SECRET_SALT;
+  const hash = sha256(payload).toUpperCase();
+  let expectedB3 = '';
+  for (let i = 0; i < 4; i++) {
+    const val = parseInt(hash.substr(i * 4, 4), 16) % LICENSE_CHARS.length;
+    expectedB3 += LICENSE_CHARS[val];
+  }
+  return b3 === expectedB3;
+}
+
+const licenseOverlay       = document.getElementById('licenseOverlay');
+const licenseKeyInput     = document.getElementById('licenseKeyInput');
+const btnActivateLicense  = document.getElementById('btnActivateLicense');
+const licenseFeedback     = document.getElementById('licenseFeedback');
+const settingsLicenseTag  = document.getElementById('settingsLicenseTag');
+const settingsLicenseKeyText = document.getElementById('settingsLicenseKeyText');
+const btnReactivateLicense = document.getElementById('btnReactivateLicense');
+
+// Auto-formateo del input de clave con guiones automáticos
+licenseKeyInput.addEventListener('input', (e) => {
+  let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (val.startsWith('XADAPT')) val = val.slice(6);
+  
+  let formatted = 'XADAPT';
+  for (let i = 0; i < val.length && i < 12; i++) {
+    if (i % 4 === 0) formatted += '-';
+    formatted += val[i];
+  }
+  e.target.value = formatted;
+  licenseFeedback.textContent = '';
+});
+
+function maskLicenseKey(key) {
+  const parts = (key || '').split('-');
+  if (parts.length === 4) return `${parts[0]}-••••-••••-${parts[3]}`;
+  return 'XADAPT-••••-••••';
+}
+
+function updateLicenseDisplay(isValid, key) {
+  if (isValid) {
+    licenseOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+    if (settingsLicenseTag) settingsLicenseTag.textContent = 'Activa ✅';
+    if (settingsLicenseKeyText) settingsLicenseKeyText.textContent = maskLicenseKey(key);
+  } else {
+    licenseOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    if (settingsLicenseTag) settingsLicenseTag.textContent = 'Sin activar ⚠️';
+    if (settingsLicenseKeyText) settingsLicenseKeyText.textContent = 'No activada';
+  }
+}
+
+function checkStoredLicense() {
+  updateLicenseDisplay(true, 'APK-CERRADO-ILIMITADO');
+  return true;
+}
+
+btnActivateLicense.addEventListener('click', () => {
+  const candidate = licenseKeyInput.value.trim().toUpperCase();
+  if (validateLicenseKey(candidate)) {
+    localStorage.setItem('xadapter_license_key', candidate);
+    licenseFeedback.className = 'license-feedback success';
+    licenseFeedback.textContent = '✅ ¡Licencia activada con éxito! Desbloqueando...';
+    btnActivateLicense.disabled = true;
+    setTimeout(() => {
+      btnActivateLicense.disabled = false;
+      updateLicenseDisplay(true, candidate);
+      licenseFeedback.textContent = '';
+      licenseKeyInput.value = '';
+    }, 700);
+  } else {
+    licenseFeedback.className = 'license-feedback error';
+    licenseFeedback.textContent = '❌ Clave de licencia inválida. Verificá que esté escrita correctamente.';
+  }
+});
+
+btnReactivateLicense?.addEventListener('click', () => {
+  closeSettings();
+  licenseFeedback.textContent = '';
+  licenseOverlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  licenseKeyInput.focus();
+});
+
+/* ================================================================
+   PWA — INSTALACIÓN RÁPIDA Y ACTUALIZACIÓN AUTOMÁTICA
+================================================================ */
+const btnInstallPwa    = document.getElementById('btnInstallPwa');
+const pwaUpdateBanner  = document.getElementById('pwaUpdateBanner');
+const btnApplyUpdate   = document.getElementById('btnApplyUpdate');
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (btnInstallPwa) btnInstallPwa.style.display = 'inline-flex';
+});
+
+btnInstallPwa?.addEventListener('click', async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const choice = await deferredInstallPrompt.userChoice;
+  if (choice.outcome === 'accepted') {
+    btnInstallPwa.style.display = 'none';
+  }
+  deferredInstallPrompt = null;
+});
+
+window.addEventListener('appinstalled', () => {
+  if (btnInstallPwa) btnInstallPwa.style.display = 'none';
+  deferredInstallPrompt = null;
+});
+
+btnApplyUpdate?.addEventListener('click', async () => {
+  btnApplyUpdate.textContent = '⏳ Actualizando...';
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  }
+  window.location.reload(true);
+});
+
+/* ================================================================
+   INIT
+================================================================ */
+checkStoredLicense();
+loadSettings();
+syncSettingsCheckboxes();
+syncHiloSettingsUI();
+renderCustomRules();
+render();
+
+/* ================================================================
+   PWA — Service Worker (con purga automática de versiones viejas)
+================================================================ */
+if ('serviceWorker' in navigator) {
+  // Purgar de inmediato cachés viejas para evitar servir archivos obsoletos
+  if ('caches' in window) {
+    caches.keys().then((keys) => {
+      keys.forEach((key) => {
+        if (key !== 'x-adapter-v12') {
+          console.log('[PWA] Eliminando caché obsoleta:', key);
+          caches.delete(key);
+        }
+      });
+    }).catch(() => {});
+  }
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js?v=12').then((reg) => {
+      reg.update().catch(() => {});
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              if (pwaUpdateBanner) pwaUpdateBanner.style.display = 'flex';
+            }
+          });
+        }
+      });
+    }).catch(() => {});
+  });
+}
+
+/* ================================================================
+   EMOJI PICKER
+================================================================ */
+const EMOJI_CATEGORIES = [
+  { icon: '😀', name: 'Caras', emojis: ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','🙄','😏','😣','😥','😮','🤐','😯','😪','😫','🥱','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🤑','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','🥵','🥶','😳','🤪','😵','🥴','😠','😡','🤬','😷','🤒','🤕','🤢','🤮','🤧','😇','🥳','🥺','🤠','🤡','🤥','🤫','🤭','🧐','🤓','😈','👿'] },
+  { icon: '👋', name: 'Gestos', emojis: ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','💪','🦵','🦶','👂','👃','🫀','🫁','🧠','🦷','🦴','👀','👁️','👅','👄'] },
+  { icon: '❤️', name: 'Símbolos', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','✡️','🔯','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🔕','🔇','🔉','🔊','📢','📣','🔔','🔕','🎵','🎶','💹','🏧','🚮','🚰','♿','🚹','🚺','🚻','🚼','🚾','🛂','🛃','🛄','🛅','⚠️','☢️','☣️','↗️','➡️','↘️','⬇️','↙️','⬅️','↖️','⬆️','↕️','↔️','↩️','↪️','⤴️','⤵️','🔃','🔄','🔙','🔚','🔛','🔜','🔝','🛐','⚜️','🔱','📛','🔰','✅','❇️','🌐','💠','♾️'] },
+  { icon: '🐶', name: 'Animales', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐕‍🦺','🐈','🐈‍⬛','🐓','🦃','🦚','🦜','🦢','🦩','🕊️','🐇','🦝','🦨','🦡','🦦','🦥','🐁','🐀','🐿️','🦔'] },
+  { icon: '🍎', name: 'Comida', emojis: ['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🧄','🧅','🥔','🌽','🥕','🧇','🥞','🧈','🍳','🥚','🧀','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🧆','🌮','🌯','🫔','🥗','🥘','🫕','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚','🍘','🍥','🥮','🍢','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🧃','🥤','🧋','☕','🍵','🧉','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🍾'] },
+  { icon: '⚽', name: 'Deporte', emojis: ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🏓','🏸','🏒','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','⛹️','🤺','🤾','🏌️','🏇','🧘','🏄','🏊','🤽','🚣','🧗','🚵','🚴','🏆','🥇','🥈','🥉','🏅','🎖️','🎗️','🏵️','🎫','🎟️','🎪','🤹','🎭','🩰','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🪘','🎷','🎺','🎸','🪕','🎻','🎲','♟️','🎯','🎳','🎮','🎰','🧩'] },
+  { icon: '🚀', name: 'Viaje', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🏍️','🛵','🚲','🛴','🛺','🚁','🛸','🚀','✈️','🛩️','🛫','🛬','🪂','💺','🚂','🚆','🚇','🚈','🚉','🚊','🚝','🚞','🚋','🚃','🚟','🚠','🚡','🛤️','🛣️','⛽','🚧','⚓','🛟','⛵','🚤','🛥️','🛳️','⛴️','🚢','🗺️','🧭','🏔️','⛰️','🌋','🏕️','🏖️','🏜️','🏝️','🏞️','🏟️','🏛️','🏗️','🏚️','🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏭','🏯','🏰','💒','🗼','🗽','⛪','🕌','🛕','🕍','⛩️','🕋'] },
+  { icon: '⭐', name: 'Naturaleza', emojis: ['☀️','🌤️','⛅','🌥️','☁️','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','⛄','🌬️','💨','💧','💦','🌊','🌈','⚡','🌀','🌪️','🌫️','🌙','⭐','🌟','💫','✨','☄️','🌞','🌛','🌜','🌝','🌚','🌕','🌖','🌗','🌘','🌑','🌒','🌓','🌔','🌍','🌎','🌏','🪐','🌱','🌿','☘️','🍀','🎋','🎍','🍃','🍂','🍁','🍄','🌾','💐','🌷','🌹','🥀','🌺','🌸','🌼','🌻','🌞','🌵','🎄','🌲','🌳','🌴'] },
+  { icon: '💡', name: 'Objetos', emojis: ['💡','🔦','🕯️','🪔','🧯','💰','💴','💵','💶','💷','💸','💳','🪙','💎','⚖️','🔑','🗝️','🔐','🔏','🔒','🔓','🔨','🪓','⛏️','🔧','🔩','🪛','🔗','⛓️','🧲','🪜','🧰','🪤','🪣','🧴','🪥','🧹','🧺','🧻','🪣','🧼','🫧','🪒','🧽','🪠','🛒','🚪','🪟','🪑','🛋️','🛏️','🛁','🚿','🪞','🪤','🪣','📱','💻','🖥️','🖨️','⌨️','🖱️','💾','💿','📀','📷','📸','📹','🎥','📽️','📞','☎️','📟','📠','📺','📻','🧭','⏱️','⏲️','⏰','🕰️','⌚','📡','🔋','🪫','🔌','💡'] },
+];
+
+let _emojiTargetInput = null;
+let _emojiActiveTab   = 0;
+
+function buildEmojiPicker() {
+  const tabs = document.getElementById('emojiTabs');
+  const grid = document.getElementById('emojiGrid');
+  if (!tabs || !grid) return;
+
+  // Build tabs
+  tabs.innerHTML = EMOJI_CATEGORIES.map((cat, i) =>
+    `<button type="button" class="emoji-tab${i === _emojiActiveTab ? ' active' : ''}" data-tab="${i}" title="${cat.name}">${cat.icon}</button>`
+  ).join('');
+
+  // Build grid for active category
+  grid.innerHTML = EMOJI_CATEGORIES[_emojiActiveTab].emojis.map(e =>
+    `<button type="button" class="emoji-btn" data-emoji="${e}">${e}</button>`
+  ).join('');
+
+  // Tab clicks
+  tabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.emoji-tab');
+    if (!btn) return;
+    _emojiActiveTab = parseInt(btn.dataset.tab, 10);
+    tabs.querySelectorAll('.emoji-tab').forEach((t, i) => t.classList.toggle('active', i === _emojiActiveTab));
+    grid.innerHTML = EMOJI_CATEGORIES[_emojiActiveTab].emojis.map(e =>
+      `<button type="button" class="emoji-btn" data-emoji="${e}">${e}</button>`
+    ).join('');
+  }, { capture: true });
+
+  // Emoji clicks
+  grid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.emoji-btn');
+    if (!btn || !_emojiTargetInput) return;
+    const emoji = btn.dataset.emoji;
+    // Insert at cursor
+    const start = _emojiTargetInput.selectionStart;
+    const end   = _emojiTargetInput.selectionEnd;
+    const val   = _emojiTargetInput.value;
+    _emojiTargetInput.value = val.slice(0, start) + emoji + val.slice(end);
+    _emojiTargetInput.selectionStart = _emojiTargetInput.selectionEnd = start + emoji.length;
+    _emojiTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
+    _emojiTargetInput.focus();
+  });
+}
+
+function openEmojiPicker(btnEl, inputEl) {
+  _emojiTargetInput = inputEl;
+  const picker = document.getElementById('emojiPicker');
+  if (!picker) return;
+  picker.classList.add('open');
+
+  // Rebuild grid (keeps tab)
+  const grid = document.getElementById('emojiGrid');
+  if (grid) {
+    grid.innerHTML = EMOJI_CATEGORIES[_emojiActiveTab].emojis.map(e =>
+      `<button type="button" class="emoji-btn" data-emoji="${e}">${e}</button>`
+    ).join('');
+  }
+  document.getElementById('emojiTabs')?.querySelectorAll('.emoji-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === _emojiActiveTab);
+  });
+
+  // Position picker near button
+  const rect = btnEl.getBoundingClientRect();
+  const pw = 280, ph = 320;
+  let top  = rect.bottom + 6;
+  let left = rect.left;
+  if (left + pw > window.innerWidth - 8)  left = window.innerWidth - pw - 8;
+  if (top  + ph > window.innerHeight - 8) top  = rect.top - ph - 6;
+  picker.style.top  = `${Math.max(8, top)}px`;
+  picker.style.left = `${Math.max(8, left)}px`;
+}
+
+function closeEmojiPicker() {
+  document.getElementById('emojiPicker')?.classList.remove('open');
+  _emojiTargetInput = null;
+}
+
+// Build picker once on load
+buildEmojiPicker();
+
+// Open picker when clicking emoji buttons (delegated on settings body)
+document.getElementById('customRulesBox')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-emoji-pick');
+  if (!btn) return;
+  e.stopPropagation();
+  const picker = document.getElementById('emojiPicker');
+  const isOpen = picker?.classList.contains('open');
+  const idx     = parseInt(btn.dataset.idx, 10);
+  const field   = btn.dataset.field;
+  const row     = btn.closest('.custom-rule-row');
+  const input   = row?.querySelector(field === 'find' ? '.custom-rule-find' : '.custom-rule-replace');
+  if (isOpen && _emojiTargetInput === input) {
+    closeEmojiPicker();
+  } else {
+    openEmojiPicker(btn, input);
+  }
+});
+
+// Close picker on outside click
+document.addEventListener('click', (e) => {
+  const picker = document.getElementById('emojiPicker');
+  if (!picker?.classList.contains('open')) return;
+  if (!picker.contains(e.target) && !e.target.closest('.btn-emoji-pick')) {
+    closeEmojiPicker();
+  }
+});
+
+// Close picker on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeEmojiPicker();
+});
+</script>
+
+<!-- EMOJI PICKER POPUP (global, posicionado por JS) -->
+<div id="emojiPicker" role="dialog" aria-label="Selector de emojis">
+  <div class="emoji-picker-tabs" id="emojiTabs"></div>
+  <div class="emoji-grid" id="emojiGrid"></div>
+</div>
+
+</body>
+</html>

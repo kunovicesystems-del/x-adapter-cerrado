@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">X Message Adapter</string>
+    <string name="floating_bubble_title">X Adapter activo (v2.8)</string>
+    <string name="floating_bubble_text">Tocá para abrir el adaptador de mensajes</string>
+    <string name="perm_prompt_title">Permiso para botón flotante</string>
+    <string name="perm_prompt_desc">Para mostrar el botón flotante encima de X (Twitter), activá el permiso \'Mostrar sobre otras aplicaciones\'.</string>
+    <string name="perm_btn_grant">Habilitar permiso</string>
+    <string name="perm_btn_cancel">Ahora no</string>
+    <string name="btn_toggle_bubble_on">✂️ Activar botón flotante</string>
+    <string name="btn_toggle_bubble_off">✕ Ocultar botón flotante</string>
+</resources>
